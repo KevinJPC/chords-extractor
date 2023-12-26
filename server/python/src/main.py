@@ -6,7 +6,7 @@ from librosa.beat import beat_track
 from json import dumps
 
 set_printoptions(suppress=True)
-audio_path = './python/audio.mp3'
+audio_path = 'C:/Users/kepc0/Downloads/y2mate.com - Yet.mp3'
 
 def recognize_chords(audio_path):
     try:

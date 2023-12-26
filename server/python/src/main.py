@@ -1,3 +1,4 @@
+import sys
 from chord_extractor.extractors import Chordino
 from itertools import starmap
 from numpy import set_printoptions
@@ -6,7 +7,8 @@ from librosa.beat import beat_track
 from json import dumps
 
 set_printoptions(suppress=True)
-audio_path = 'C:/Users/kepc0/Downloads/y2mate.com - Yet.mp3'
+
+audio_path = sys.argv[1]
 
 def recognize_chords(audio_path):
     try:
@@ -36,8 +38,14 @@ try:
     chords = recognize_chords(audio_path)
     bpm, beat_times = recognize_bpm_and_beat_times(audio_path)
 
-    audio_info = {'chords': chords, 'bpm': bpm, 'beat_times': list(beat_times)}
+    response = {'status': 'sucess', 'data': {'chords': chords, 'bpm': bpm, 'beat_times': list(beat_times)}}
+    print(dumps(response))
 
-    print(dumps(audio_info))
+except FileNotFoundError:
+    response = {'status': 'fail'}
+    print(dumps(response))
+
 except Exception as e:
+    response = {'status': 'fail'}
+    print(dumps(response))
     raise e

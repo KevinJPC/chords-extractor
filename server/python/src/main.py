@@ -42,10 +42,10 @@ try:
     print(dumps(response))
 
 except FileNotFoundError:
-    response = {'status': 'fail'}
+    response = {'status': 'fail', 'message': 'File not found'}
     print(dumps(response))
 
 except Exception as e:
-    response = {'status': 'fail'}
+    response = {'status': 'fail', 'message': 'Something went wrong'}
     print(dumps(response))
     raise e

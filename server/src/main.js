@@ -1,11 +1,16 @@
 import { spawn } from 'child_process'
 import { cwd } from 'node:process'
 import path from 'path'
+import youtubeMp3Converter from 'youtube-mp3-converter'
+import { randomUUID } from 'node:crypto'
 
-const currentDirectory = cwd()
+const CWD = cwd()
+const TEMP_AUDIO_FILES_PATH = 'temp'
 
-const PYTHON_CMD = path.join(currentDirectory, 'python', '.venv', 'scripts', 'python')
-const PYTHON_FILE_PATH = path.join(currentDirectory, 'python', 'src', 'main.py')
+const PYTHON_CMD = path.join(CWD, 'python', '.venv', 'scripts', 'python')
+const PYTHON_FILE_PATH = path.join(CWD, 'python', 'src', 'main.py')
+
+const convertLinkToMp3 = youtubeMp3Converter(TEMP_AUDIO_FILES_PATH)
 
 function analyzeAudio ({ audioPath }) {
   const spawnProcess = spawn(`${PYTHON_CMD}`, [PYTHON_FILE_PATH, audioPath])
@@ -18,11 +23,11 @@ function analyzeAudio ({ audioPath }) {
 
     spawnProcess.stdout.on('end', () => {
       try {
-        console.log(response)
         const { status, data, message } = JSON.parse(response)
         if (status === 'fail') reject(message)
 
-        resolve(data)
+        const { chords, bpm, beat_times: beatTimes } = data
+        resolve({ chords, bpm, beatTimes })
       } catch (e) {
         console.error('error', e)
         reject(e)
@@ -30,11 +35,11 @@ function analyzeAudio ({ audioPath }) {
     })
 
     spawnProcess.stderr.on('data', (data) => {
-      console.error(data.toString())
+      console.error('stderr', data.toString())
     })
 
     spawnProcess.on('error', (err) => {
-      console.error(err)
+      console.error('spawn process error', err)
       reject(err)
     })
   })
@@ -42,9 +47,16 @@ function analyzeAudio ({ audioPath }) {
   return promise
 }
 
-try {
-  const audioInfo = await analyzeAudio({ audioPath: 'C:/Users/kepc0/Downloads/y2mate.com - Barak  Acepta Video Oficial.mp3' })
-  console.log(audioInfo)
-} catch (error) {
-  console.log(error)
+async function main () {
+  try {
+    const audioPath = await convertLinkToMp3('https://www.youtube.com/watch?v=IxD3JiOo9DY', {
+      title: randomUUID()
+    })
+    const audioInfo = await analyzeAudio({ audioPath })
+    console.log(audioInfo)
+  } catch (error) {
+    console.log(error)
+  }
 }
+
+main()

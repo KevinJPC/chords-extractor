@@ -1,3 +1,5 @@
 {
-  "standard.autoFixOnSave": true
+  "standard.autoFixOnSave": true,
+  "flashpost.saveDataToWorkspace": true,
+  "flashpost.workspaceDataRelativePath": "api"
 }

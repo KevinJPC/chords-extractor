@@ -1,18 +1,30 @@
 import { spawn } from 'child_process'
 import { cwd } from 'node:process'
-import path from 'path'
-import youtubeMp3Converter from 'youtube-mp3-converter'
+import path from 'node:path'
+
 import { randomUUID } from 'node:crypto'
+import youtubeMp3Converter from 'youtube-mp3-converter'
 
 const CWD = cwd()
-const TEMP_AUDIO_FILES_PATH = 'temp'
 
 const PYTHON_CMD = path.join(CWD, 'python', '.venv', 'scripts', 'python')
 const PYTHON_FILE_PATH = path.join(CWD, 'python', 'src', 'main.py')
 
+const TEMP_AUDIO_FILES_PATH = 'temp'
 const convertLinkToMp3 = youtubeMp3Converter(TEMP_AUDIO_FILES_PATH)
 
-function analyzeAudio ({ audioPath }) {
+export const convertToMp3 = async ({ link }) => {
+  try {
+    const audioPath = await convertLinkToMp3(link, {
+      title: randomUUID()
+    })
+    return audioPath
+  } catch (error) {
+    console.error(error)
+  }
+}
+
+export const analyzeAudio = ({ audioPath }) => {
   const spawnProcess = spawn(`${PYTHON_CMD}`, [PYTHON_FILE_PATH, audioPath])
   let response = ''
 
@@ -46,17 +58,3 @@ function analyzeAudio ({ audioPath }) {
 
   return promise
 }
-
-async function main () {
-  try {
-    const audioPath = await convertLinkToMp3('https://www.youtube.com/watch?v=IxD3JiOo9DY', {
-      title: randomUUID()
-    })
-    const audioInfo = await analyzeAudio({ audioPath })
-    console.log(audioInfo)
-  } catch (error) {
-    console.log(error)
-  }
-}
-
-main()

@@ -13,9 +13,9 @@ const PYTHON_FILE_PATH = path.join(CWD, 'python', 'src', 'main.py')
 const TEMP_AUDIO_FILES_PATH = 'temp'
 const convertLinkToMp3 = youtubeMp3Converter(TEMP_AUDIO_FILES_PATH)
 
-export const convertToMp3 = async ({ link }) => {
+export const convertToMp3 = async ({ id }) => {
   try {
-    const audioPath = await convertLinkToMp3(link, {
+    const audioPath = await convertLinkToMp3(id, {
       title: randomUUID()
     })
     return audioPath

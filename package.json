@@ -1,0 +1,24 @@
+{
+  "name": "chords-extractor",
+  "version": "1.0.0",
+  "description": "",
+  "workspaces": [
+    "app",
+    "api"
+  ],
+  "scripts": {
+    "dev:app": "npm run dev --workspace=app",
+    "dev:api": "npm run dev --workspace=api"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "standard": "17.1.0"
+  },
+  "eslintConfig": {
+    "extends": [
+      "standard"
+    ]
+  }
+}

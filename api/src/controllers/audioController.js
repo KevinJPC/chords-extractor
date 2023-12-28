@@ -2,8 +2,8 @@ import { convertToMp3, analyzeAudio } from '../services/audioService.js'
 
 export const getAudioInfo = async (req, res) => {
   try {
-    const { link } = req.params
-    const audioPath = await convertToMp3({ link })
+    const { id } = req.params
+    const audioPath = await convertToMp3({ id })
     const { chords, bpm, beatTimes } = await analyzeAudio({ audioPath })
 
     res.status(200).json({

@@ -1,6 +1,7 @@
 import { spawn } from 'child_process'
 import { cwd } from 'node:process'
 import path from 'node:path'
+import { EventEmitter } from 'node:events'
 
 import { randomUUID } from 'node:crypto'
 import youtubeMp3Converter from 'youtube-mp3-converter'
@@ -13,9 +14,14 @@ const PYTHON_FILE_PATH = path.join(CWD, 'python', 'src', 'main.py')
 const TEMP_AUDIO_FILES_PATH = 'temp'
 const convertLinkToMp3 = youtubeMp3Converter(TEMP_AUDIO_FILES_PATH)
 
+export const eventEmitter = new EventEmitter()
+
+export const ytSongsInAnalysis = new Set()
+
 export const convertToMp3 = async ({ id }) => {
   try {
     const audioPath = await convertLinkToMp3(id, {
+      // title: 'test'
       title: randomUUID()
     })
     return audioPath
@@ -57,4 +63,15 @@ export const analyzeAudio = ({ audioPath }) => {
   })
 
   return promise
+}
+
+export const processAudio = async ({ id }) => {
+  try {
+    const audioPath = await convertToMp3({ id })
+    const { chords, bpm, beatTimes } = await analyzeAudio({ audioPath })
+    eventEmitter.emit(`finish-${id}`, { chords, bpm, beatTimes })
+    ytSongsInAnalysis.delete(id)
+  } catch (error) {
+    console.error(error)
+  }
 }

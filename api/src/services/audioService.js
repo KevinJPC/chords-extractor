@@ -67,11 +67,34 @@ export const analyzeAudio = ({ audioPath }) => {
 
 export const processAudio = async ({ id }) => {
   try {
-    const audioPath = await convertToMp3({ id })
-    const { chords, bpm, beatTimes } = await analyzeAudio({ audioPath })
-    eventEmitter.emit(`finish-${id}`, { chords, bpm, beatTimes })
-    ytSongsInAnalysis.delete(id)
+    const eventEmitterPromise = new Promise((resolve, reject) => {
+      eventEmitter.on(`end:${id}`, (data) => resolve(data))
+    })
+
+    const songIsInAnalysis = ytSongsInAnalysis.has(id)
+
+    if (!songIsInAnalysis) {
+      ytSongsInAnalysis.add(id)
+      const audioPath = await convertToMp3({ id })
+      const { chords, bpm, beatTimes } = await analyzeAudio({ audioPath })
+      ytSongsInAnalysis.delete(id)
+      eventEmitter.emit(`end:${id}`, { chords, bpm, beatTimes })
+    }
+
+    return eventEmitterPromise
   } catch (error) {
     console.error(error)
+  }
+}
+class AudioService {
+  #eventEmitter
+  #ytSongsInAnalysis
+  constructor () {
+    this.#eventEmitter = new EventEmitter()
+    this.#ytSongsInAnalysis = new Set()
+  }
+
+  async processAudio () {
+
   }
 }

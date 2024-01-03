@@ -1,100 +1,68 @@
-import { spawn } from 'child_process'
-import { cwd } from 'node:process'
 import path from 'node:path'
 import { EventEmitter } from 'node:events'
-
 import { randomUUID } from 'node:crypto'
-import youtubeMp3Converter from 'youtube-mp3-converter'
-
-const CWD = cwd()
-
-const PYTHON_CMD = path.join(CWD, 'python', '.venv', 'scripts', 'python')
-const PYTHON_FILE_PATH = path.join(CWD, 'python', 'src', 'main.py')
+import initializeYoutubeMp3Converter from 'youtube-mp3-converter'
+import fs from 'node:fs/promises'
+import { spawnPython } from '../utils/spawnPython.js'
 
 const TEMP_AUDIO_FILES_PATH = 'temp'
-const convertLinkToMp3 = youtubeMp3Converter(TEMP_AUDIO_FILES_PATH)
 
-export const eventEmitter = new EventEmitter()
+const youtubeAudiosCompletionEmitter = new EventEmitter()
 
-export const ytSongsInAnalysis = new Set()
+const youtubeAudiosInAnalysis = new Set()
 
-export const convertToMp3 = async ({ id }) => {
+export const analyzeAudio = async ({ youtubeId }) => {
   try {
-    const audioPath = await convertLinkToMp3(id, {
-      // title: 'test'
+    const onEndPromise = new Promise((resolve, reject) => {
+      youtubeAudiosCompletionEmitter.once(youtubeId, ({ error, data }) => {
+        if (error) return reject(error)
+        resolve(data)
+      })
+    })
+    const songIsInAnalysis = youtubeAudiosInAnalysis.has(youtubeId)
+
+    if (!songIsInAnalysis) runAudioAnalysisProcess({ youtubeId })
+
+    return onEndPromise
+  } catch (error) {
+    console.error(error)
+    return error
+  }
+}
+
+const runAudioAnalysisProcess = async ({ youtubeId }) => {
+  try {
+    youtubeAudiosInAnalysis.add(youtubeId)
+    const audioPath = await convertToMp3({ youtubeId })
+    const { chords, bpm, beatTimes } = await analyzeAudioWithPython({ audioPath })
+    await fs.unlink(audioPath)
+    youtubeAudiosInAnalysis.delete(youtubeId)
+    youtubeAudiosCompletionEmitter.emit(youtubeId, { error: null, data: { chords, bpm, beatTimes } })
+  } catch (error) {
+    console.error(error)
+    youtubeAudiosCompletionEmitter.emit(youtubeId, { error })
+  }
+}
+
+const analyzeAudioWithPython = async ({ audioPath }) => {
+  try {
+    const PYTHON_FILE_PATH = path.join('python', 'src', 'main.py')
+    const { chords, bpm, beat_times: beatTimes } = await spawnPython({ pythonFilePath: PYTHON_FILE_PATH, args: [audioPath] })
+    return { chords, bpm, beatTimes }
+  } catch (error) {
+    return error
+  }
+}
+
+const youtubeMp3Converter = initializeYoutubeMp3Converter(TEMP_AUDIO_FILES_PATH)
+
+const convertToMp3 = async ({ youtubeId }) => {
+  try {
+    const audioPath = await youtubeMp3Converter(youtubeId, {
       title: randomUUID()
     })
     return audioPath
   } catch (error) {
     console.error(error)
-  }
-}
-
-export const analyzeAudio = ({ audioPath }) => {
-  const spawnProcess = spawn(`${PYTHON_CMD}`, [PYTHON_FILE_PATH, audioPath])
-  let response = ''
-
-  const promise = new Promise((resolve, reject) => {
-    spawnProcess.stdout.on('data', (data) => {
-      response += data.toString()
-    })
-
-    spawnProcess.stdout.on('end', () => {
-      try {
-        const { status, data, message } = JSON.parse(response)
-        if (status === 'fail') reject(message)
-
-        const { chords, bpm, beat_times: beatTimes } = data
-        resolve({ chords, bpm, beatTimes })
-      } catch (e) {
-        console.error('error', e)
-        reject(e)
-      }
-    })
-
-    spawnProcess.stderr.on('data', (data) => {
-      console.error('stderr', data.toString())
-    })
-
-    spawnProcess.on('error', (err) => {
-      console.error('spawn process error', err)
-      reject(err)
-    })
-  })
-
-  return promise
-}
-
-export const processAudio = async ({ id }) => {
-  try {
-    const eventEmitterPromise = new Promise((resolve, reject) => {
-      eventEmitter.on(`end:${id}`, (data) => resolve(data))
-    })
-
-    const songIsInAnalysis = ytSongsInAnalysis.has(id)
-
-    if (!songIsInAnalysis) {
-      ytSongsInAnalysis.add(id)
-      const audioPath = await convertToMp3({ id })
-      const { chords, bpm, beatTimes } = await analyzeAudio({ audioPath })
-      ytSongsInAnalysis.delete(id)
-      eventEmitter.emit(`end:${id}`, { chords, bpm, beatTimes })
-    }
-
-    return eventEmitterPromise
-  } catch (error) {
-    console.error(error)
-  }
-}
-class AudioService {
-  #eventEmitter
-  #ytSongsInAnalysis
-  constructor () {
-    this.#eventEmitter = new EventEmitter()
-    this.#ytSongsInAnalysis = new Set()
-  }
-
-  async processAudio () {
-
   }
 }

@@ -1,17 +1,17 @@
 import express from 'express'
 import morgan from 'morgan'
-import audio from './routes/audio.js'
+import audio from './routes/audioAnalyses.js'
 import cors from 'cors'
 
 const app = express()
-const port = 3000
+const port = process.env.PORT || 3000
 
 app.use(cors())
 app.use(express.json())
 
 app.use(morgan('dev'))
 
-app.use('/audio', audio)
+app.use('/audio-analyses', audio)
 
 app.get('/test', (req, res) => {
   res.send(`test ${Math.random()}`)

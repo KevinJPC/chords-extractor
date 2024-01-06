@@ -4,6 +4,7 @@ import { randomUUID } from 'node:crypto'
 import initializeYoutubeMp3Converter from 'youtube-mp3-converter'
 import fs from 'node:fs/promises'
 import { spawnPython } from '../utils/spawnPython.js'
+import AudioAnalysis from '../models/AudioAnalysis.js'
 
 const TEMP_AUDIO_FILES_PATH = 'temp'
 
@@ -35,9 +36,10 @@ const runAudioAnalysisProcess = async ({ youtubeId }) => {
     youtubeAudiosInAnalysis.add(youtubeId)
     const audioPath = await convertToMp3({ youtubeId })
     const { chords, bpm, beatTimes } = await analyzeAudioWithPython({ audioPath })
+    const audioAnalysis = await AudioAnalysis.create({ youtubeId, chords, bpm, beatTimes })
     await fs.unlink(audioPath)
     youtubeAudiosInAnalysis.delete(youtubeId)
-    youtubeAudiosCompletionEmitter.emit(youtubeId, { error: null, data: { chords, bpm, beatTimes } })
+    youtubeAudiosCompletionEmitter.emit(youtubeId, { error: null, data: audioAnalysis })
   } catch (error) {
     console.error(error)
     youtubeAudiosCompletionEmitter.emit(youtubeId, { error })

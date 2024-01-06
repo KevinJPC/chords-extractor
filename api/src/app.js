@@ -1,7 +1,10 @@
+import { connectToDb } from './db/conn.js'
 import express from 'express'
 import morgan from 'morgan'
 import audio from './routes/audioAnalyses.js'
 import cors from 'cors'
+
+await connectToDb()
 
 const app = express()
 const port = process.env.PORT || 3000

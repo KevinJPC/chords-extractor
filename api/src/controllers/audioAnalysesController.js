@@ -41,11 +41,11 @@ export const createAudioAnalysis = async (req, res) => {
 
     const { youtubeId } = req.body
 
-    const { chords, bpm, beatTimes } = await analyzeAudio({ youtubeId })
+    const result = await analyzeAudio({ youtubeId })
 
     const response = buildSSEResponse({
       status: 'success',
-      data: { chords, bpm, beatTimes }
+      data: result
     })
     res.write(response)
 

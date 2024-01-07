@@ -15,9 +15,9 @@ const youtubeAudiosInAnalysis = new Set()
 export const analyzeAudio = async ({ youtubeId }) => {
   try {
     const onEndPromise = new Promise((resolve, reject) => {
-      youtubeAudiosCompletionEmitter.once(youtubeId, ({ error, data }) => {
+      youtubeAudiosCompletionEmitter.once(youtubeId, ({ error, data: audioAnalysis }) => {
         if (error) return reject(error)
-        resolve(data)
+        resolve(audioAnalysis)
       })
     })
     const songIsInAnalysis = youtubeAudiosInAnalysis.has(youtubeId)
@@ -32,17 +32,18 @@ export const analyzeAudio = async ({ youtubeId }) => {
 }
 
 const runAudioAnalysisProcess = async ({ youtubeId }) => {
+  let audioPath
   try {
     youtubeAudiosInAnalysis.add(youtubeId)
-    const audioPath = await convertToMp3({ youtubeId })
+    audioPath = await convertToMp3({ youtubeId })
     const { chords, bpm, beatTimes } = await analyzeAudioWithPython({ audioPath })
     const audioAnalysis = await AudioAnalysis.create({ youtubeId, chords, bpm, beatTimes })
-    await fs.unlink(audioPath)
-    youtubeAudiosInAnalysis.delete(youtubeId)
     youtubeAudiosCompletionEmitter.emit(youtubeId, { error: null, data: audioAnalysis })
   } catch (error) {
-    console.error(error)
     youtubeAudiosCompletionEmitter.emit(youtubeId, { error })
+  } finally {
+    youtubeAudiosInAnalysis.delete(youtubeId)
+    if (audioPath) fs.unlink(audioPath)
   }
 }
 

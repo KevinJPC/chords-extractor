@@ -1,34 +1,10 @@
-import { NextPage } from 'youtube-search-api'
 import { AUDIO_ALREADY_ANALYZED, AUDIO_ANALYSIS_NOT_FOUND } from '../constants/errorCodes.js'
 import AudioAnalysis from '../models/AudioAnalysis.js'
 import { analyzeAudio } from '../services/audioAnalysisService.js'
-import { youtubeSearch } from '../services/youtubeSearchService.js'
+import YoutubeService from '../services/youtubeService.js'
 import AppError from '../utils/AppError.js'
 import { sseHeaders, writeSseResponse } from '../utils/sse.js'
 import { tryCatch } from '../utils/tryCatch.js'
-
-const SOURCES = {
-  YOUTUBE: 'youtube'
-}
-
-export const getAllAudioAnalyses = tryCatch(async (req, res) => {
-  const { source, query } = req.query
-  const { page } = req.body
-
-  const { items, nextPage } = await youtubeSearch({ query, page })
-  const itemsIds = items.map(item => item.id)
-  const audioAnalyses = await AudioAnalysis.findAllByYoutubeIds({ youtubeIds: itemsIds })
-  const newItems = items.map(item => {
-    const isAnalyzed = audioAnalyses[item.id] !== undefined
-    return { ...item, isAnalyzed }
-  })
-
-  res.status(200).json({
-    status: 'success',
-    results: newItems,
-    nextPage
-  })
-})
 
 export const getAudioAnalysis = tryCatch(async (req, res) => {
   const { youtubeId } = req.params
@@ -73,4 +49,47 @@ export const createAudioAnalysis = tryCatch(async (req, res) => {
   }
   writeSseResponse(res, { event: 'success', data: response })
   res.end()
+})
+
+export const getAllAudioAnalysesBySource = (req, res, next) => {
+  const { source } = req.query
+
+  const SOURCES = {
+    YOUTUBE: 'youtube'
+  }
+  const GET_ALL_AUDIO_ANALYSES_CONTROLLERS_BY_SOURCES = {
+    [SOURCES.YOUTUBE]: getAllAudioAnalysesBaseOnYoutubeSearch
+  }
+
+  const searchController = GET_ALL_AUDIO_ANALYSES_CONTROLLERS_BY_SOURCES[source] || getAllAudioAnalyses
+  searchController(req, res, next)
+}
+
+export const getAllAudioAnalysesBaseOnYoutubeSearch = tryCatch(async (req, res) => {
+  const { searchQuery } = req.query
+  const { page } = req.body
+
+  const youtubeService = await YoutubeService.search({ searchQuery, page })
+  const resultsIds = youtubeService.getResultsIds()
+  const resultsAlreadyAnalyzed = await AudioAnalysis.findAllByYoutubeIds({ youtubeIds: resultsIds })
+  youtubeService.mappedResultsBaseOnAnalyzed({ resultsAlreadyAnalyzed })
+
+  res.status(200).json({
+    status: 'success',
+    data: {
+      results: youtubeService.results,
+      page,
+      nextPage: youtubeService.nextPage
+    }
+  })
+})
+
+export const getAllAudioAnalyses = tryCatch(async (req, res) => {
+  const { page } = req.body
+
+  res.status(501).json({
+    status: 'fail',
+    message: 'Not implemented yet',
+    data: {}
+  })
 })

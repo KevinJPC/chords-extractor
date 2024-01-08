@@ -15,7 +15,7 @@ app.use(express.json())
 
 app.use(morgan('dev'))
 
-app.use('/audio-analyses', audio)
+app.use('/api/audio-analyses', audio)
 
 app.get('/test', (req, res) => {
   res.send(`test ${Math.random()}`)

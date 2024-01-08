@@ -43,10 +43,10 @@ class AudioAnalysis {
   }
 
   static async findAllByYoutubeIds ({ youtubeIds }) {
-    const audioAnalyses = {}
+    const audioAnalyses = []
     await audioAnalysesCollection().find({ youtubeId: { $in: youtubeIds } })
       .forEach(({ _id, youtubeId, chords, bpm, beatTimes }) => {
-        audioAnalyses[youtubeId] = new AudioAnalysis({ id: _id, youtubeId, chords, bpm, beatTimes })
+        audioAnalyses.push(new AudioAnalysis({ id: _id, youtubeId, chords, bpm, beatTimes }))
       })
     return audioAnalyses
   }

@@ -1,11 +1,4 @@
-function App () {
-  return (
-    <>
-      <h1>
-        Chords extractor
-      </h1>
-    </>
-  )
-}
+import { Router } from './Router.jsx'
 
+const App = () => <Router />
 export default App

@@ -3,7 +3,7 @@ import { createAudioAnalysis, getAllAudioAnalysesBySource, getAudioAnalysis } fr
 
 const router = Router()
 router.get('/', getAllAudioAnalysesBySource)
-router.get('/:youtubeId', getAudioAnalysis)
+router.get('/:id', getAudioAnalysis)
 router.post('/', createAudioAnalysis)
 
 export default router

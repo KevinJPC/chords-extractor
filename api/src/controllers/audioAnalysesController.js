@@ -1,28 +1,30 @@
 import { AUDIO_ALREADY_ANALYZED, AUDIO_ANALYSIS_NOT_FOUND } from '../constants/errorCodes.js'
 import AudioAnalysis from '../models/AudioAnalysis.js'
 import { analyzeAudio } from '../services/audioAnalysisService.js'
-import YoutubeService from '../services/youtubeService.js'
+import { YoutubeList } from '../services/youtubeService.js'
 import AppError from '../utils/AppError.js'
 import { sseHeaders, writeSseResponse } from '../utils/sse.js'
 import { tryCatch } from '../utils/tryCatch.js'
 
 export const getAudioAnalysis = tryCatch(async (req, res) => {
-  const { youtubeId } = req.params
+  const { id } = req.params
 
-  const audioAnalysis = await AudioAnalysis.findByYoutubeId({ youtubeId })
+  const audioAnalysis = await AudioAnalysis.findById({ id })
 
   if (!audioAnalysis) throw new AppError(AUDIO_ANALYSIS_NOT_FOUND, 'Audio analysis not found.', 404)
 
   res.status(200).json({
     status: 'success',
     data: {
-      audioAnalysis: {
-        id: audioAnalysis.id,
-        youtubeId: audioAnalysis.youtubeId,
-        chords: audioAnalysis.chords,
-        bpm: audioAnalysis.bpm,
-        beatTimes: audioAnalysis.beatTimes
-      }
+      id: audioAnalysis.id,
+      youtubeId: audioAnalysis.youtubeId,
+      title: audioAnalysis.title,
+      duration: audioAnalysis.duration,
+      thumbnails: audioAnalysis.thumbnails,
+      chords: audioAnalysis.chords,
+      bpm: audioAnalysis.bpm,
+      beatTimes: audioAnalysis.beatTimes,
+      createdAt: audioAnalysis.createdAt
     }
   })
 }
@@ -38,13 +40,15 @@ export const createAudioAnalysis = tryCatch(async (req, res) => {
 
   const response = {
     data: {
-      audioAnalysis: {
-        id: newAudioAnalysis.id,
-        youtubeId: newAudioAnalysis.youtubeId,
-        chords: newAudioAnalysis.chords,
-        bpm: newAudioAnalysis.bpm,
-        beatTimes: newAudioAnalysis.beatTimes
-      }
+      id: newAudioAnalysis.id,
+      youtubeId: newAudioAnalysis.youtubeId,
+      title: newAudioAnalysis.title,
+      duration: newAudioAnalysis.duration,
+      thumbnails: newAudioAnalysis.thumbnails,
+      bpm: newAudioAnalysis.bpm,
+      chords: newAudioAnalysis.chords,
+      beatTimes: newAudioAnalysis.beatTimes,
+      createdAt: newAudioAnalysis.createdAt
     }
   }
   writeSseResponse(res, { event: 'success', data: response })
@@ -66,10 +70,9 @@ export const getAllAudioAnalysesBySource = (req, res, next) => {
 }
 
 export const getAllAudioAnalysesByYoutubeSearch = tryCatch(async (req, res) => {
-  const { searchQuery } = req.query
-  const { page } = req.body
+  const { searchQuery, continuation } = req.query
 
-  const youtubeService = await YoutubeService.search({ searchQuery, page })
+  const youtubeService = await YoutubeList.search({ searchQuery, continuation })
   const resultsIds = youtubeService.getResultsIds()
   const resultsAlreadyAnalyzed = await AudioAnalysis.findAllByYoutubeIds({ youtubeIds: resultsIds })
   youtubeService.mappedResultsBaseOnAnalyzed({ resultsAlreadyAnalyzed })
@@ -78,8 +81,7 @@ export const getAllAudioAnalysesByYoutubeSearch = tryCatch(async (req, res) => {
     status: 'success',
     data: {
       results: youtubeService.results,
-      page,
-      nextPage: youtubeService.nextPage
+      continuation: youtubeService.continuation
     }
   })
 })

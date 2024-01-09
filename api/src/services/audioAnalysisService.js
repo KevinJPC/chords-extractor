@@ -5,6 +5,7 @@ import initializeYoutubeMp3Converter from 'youtube-mp3-converter'
 import fs from 'node:fs/promises'
 import { spawnPython } from '../utils/spawnPython.js'
 import AudioAnalysis from '../models/AudioAnalysis.js'
+import { YoutubeVideoDetails } from './youtubeService.js'
 
 const TEMP_AUDIO_FILES_PATH = 'temp'
 
@@ -35,9 +36,18 @@ const runAudioAnalysisProcess = async ({ youtubeId }) => {
   let audioPath
   try {
     youtubeAudiosInAnalysis.add(youtubeId)
+    const videoDetails = await YoutubeVideoDetails.search({ id: youtubeId })
     audioPath = await convertToMp3({ youtubeId })
-    const { chords, bpm, beatTimes } = await analyzeAudioWithPython({ audioPath })
-    const audioAnalysis = await AudioAnalysis.create({ youtubeId, chords, bpm, beatTimes })
+    const audioAnalysisResult = await analyzeAudioWithPython({ audioPath })
+    const audioAnalysis = await AudioAnalysis.create({
+      youtubeId,
+      title: videoDetails.title,
+      chords: audioAnalysisResult.chords,
+      bpm: audioAnalysisResult.bpm,
+      beatTimes: audioAnalysisResult.beatTimes,
+      thumbnails: videoDetails.thumbnails,
+      duration: videoDetails.duration
+    })
     youtubeAudiosCompletionEmitter.emit(youtubeId, { error: null, data: audioAnalysis })
   } catch (error) {
     youtubeAudiosCompletionEmitter.emit(youtubeId, { error })

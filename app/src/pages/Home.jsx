@@ -1,13 +1,13 @@
 import { useEffect, useState } from 'react'
-import { getAllAudioAnalysesByYoutubeSearch } from '../services/audio'
+import { getAllAudioAnalysesByYoutubeSearch } from '../services/audioAnalyses'
 import { Link } from 'wouter'
 
 export const Home = () => {
   const [searchResult, setSearchResult] = useState(null)
 
-  const fetchAllAudioAnalysisByYoutubeSearch = async ({ searchQuery }) => {
+  const fetchAllAudioAnalysisByYoutubeSearch = async ({ searchQuery, continuation }) => {
     try {
-      const data = await getAllAudioAnalysesByYoutubeSearch({ searchQuery })
+      const data = await getAllAudioAnalysesByYoutubeSearch({ searchQuery, continuation })
       return data
     } catch (error) {
       console.log(error)
@@ -20,6 +20,13 @@ export const Home = () => {
     const { search } = Array.from(formData).reduce((acc, [key, value]) => ({ ...acc, [key]: value }), {})
     const result = await fetchAllAudioAnalysisByYoutubeSearch({ searchQuery: search })
     setSearchResult(result)
+  }
+
+  const handleClick = async () => {
+    const { continuation } = searchResult
+    const result = await fetchAllAudioAnalysisByYoutubeSearch({ continuation })
+    const newResults = [...searchResult.results, ...result.results]
+    setSearchResult({ results: newResults, continuation: result.continuation })
   }
 
   useEffect(() => {
@@ -43,15 +50,16 @@ export const Home = () => {
       <ul>
         {
           searchResult?.results.map(
-            ({ id, title, isAnalyzed }) =>
+            ({ id, title, audioAnalysisId }) =>
               <li key={id}>
                 <h1>{title} - {id}</h1>
-                <span>{isAnalyzed ? 'Analyzed' : 'Not analyzed'}</span>
-                <Link href={`/chords/${id}`}><a>Button</a></Link>
+                <span>{audioAnalysisId ? 'Analyzed' : 'Not analyzed'}</span>
+                {audioAnalysisId && <Link href={`/chords/${audioAnalysisId}`}><a>Button</a></Link>}
               </li>
           )
         }
       </ul>
+      <button onClick={handleClick}>Load more</button>
     </>
   )
 }

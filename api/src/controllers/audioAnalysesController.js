@@ -58,14 +58,14 @@ export const getAllAudioAnalysesBySource = (req, res, next) => {
     YOUTUBE: 'youtube'
   }
   const GET_ALL_AUDIO_ANALYSES_CONTROLLERS_BY_SOURCES = {
-    [SOURCES.YOUTUBE]: getAllAudioAnalysesBaseOnYoutubeSearch
+    [SOURCES.YOUTUBE]: getAllAudioAnalysesByYoutubeSearch
   }
 
   const searchController = GET_ALL_AUDIO_ANALYSES_CONTROLLERS_BY_SOURCES[source] || getAllAudioAnalyses
   searchController(req, res, next)
 }
 
-export const getAllAudioAnalysesBaseOnYoutubeSearch = tryCatch(async (req, res) => {
+export const getAllAudioAnalysesByYoutubeSearch = tryCatch(async (req, res) => {
   const { searchQuery } = req.query
   const { page } = req.body
 

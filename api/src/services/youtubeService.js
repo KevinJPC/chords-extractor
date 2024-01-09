@@ -14,8 +14,6 @@ class YoutubeService {
   }
 
   async mappedResultsBaseOnAnalyzed ({ resultsAlreadyAnalyzed }) {
-    console.log(resultsAlreadyAnalyzed)
-
     this.results = this.results.map(
       ({ id, title, thumbnail, channelTitle, length: { simpleText: length } }) => {
         const isAnalyzed = resultsAlreadyAnalyzed.find(audioAnalysis => audioAnalysis.youtubeId === id) !== undefined

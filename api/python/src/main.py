@@ -4,6 +4,7 @@ from itertools import starmap
 from numpy import set_printoptions
 from librosa import load, frames_to_time
 from librosa.beat import beat_track
+from librosa.onset import onset_strength
 from json import dumps
 
 set_printoptions(suppress=True)
@@ -24,21 +25,25 @@ def recognize_chords(audio_path):
 
 def recognize_bpm_and_beat_times(audio_path):
     try:
-        wave_form, sample_rate = load(audio_path)
+        wave_form, sample_rate = load(audio_path, sr=None)
 
-        bpm, beat_frames = beat_track(y=wave_form, sr=sample_rate)
+        onset_envelope = onset_strength(y=wave_form, sr=sample_rate)
+
+        bpm, beat_frames = beat_track(onset_envelope=onset_envelope, sr=sample_rate)
         beat_times = frames_to_time(beat_frames, sr=sample_rate)
 
-        return bpm, beat_times
+        # print(len(beat_times), 'beat times\n\n\n')
+        # print(beat_times, 'beat times\n\n\n')
+        return bpm, beat_times, beat_frames
 
     except Exception as e:
         raise e
 
 try:
     chords = recognize_chords(audio_path)
-    bpm, beat_times = recognize_bpm_and_beat_times(audio_path)
+    bpm, beat_times, beat_frames = recognize_bpm_and_beat_times(audio_path)
 
-    response = {'status': 'sucess', 'data': {'chords': chords, 'bpm': bpm, 'beat_times': list(beat_times)}}
+    response = {'status': 'sucess', 'data': {'chords': chords, 'bpm': bpm, 'beat_times': list(beat_times), 'beat_frames': len(list(beat_frames))}}
     print(dumps(response))
 
 except FileNotFoundError:

@@ -1,5 +1,6 @@
 import librosa
 import vamp
+from utils import report_progress
 
 CHORDINO_PARAMETERS = {
     'useNNLS': 1, # 0 or 1, default 1
@@ -7,27 +8,44 @@ CHORDINO_PARAMETERS = {
     'tuningmode': 0, # Global = 0 Local = 1, default 0
     'whitening': .8, # 0 - 1 default 1
     's': .5, # 0.5 - 0.9, default 0.7
-    'boostn': 0 # 0 - 1, default .1
+    'boostn': 0.1 # 0 - 1, default .1
 }
 
 def analyze_audio(audio_path):
-
+  report_progress(0)
+  
   audio_data, sample_rate = get_audio_data(audio_path)
+  report_progress(10)
+
+  bpm, beat_times = recognize_bpm_and_beat_times(audio_data, sample_rate)
+  report_progress(50)
 
   chords = recognize_chords(audio_data, sample_rate)
-  bpm, beat_times = recognize_bpm_and_beat_times(audio_data, sample_rate)
+  report_progress(90)
 
-  return bpm, beat_times
+  beats_and_chords = map_beats_and_chords(beat_times, chords)
+  report_progress(100)
 
-def map_chords_and_beats(beat_times, chords):
-  chords_and_beats = []
-  for beat_time_index in range(len(beat_times)):
-    current_beat_time = beat_times[beat_time_index]
+  return bpm, beats_and_chords
+
+def map_beats_and_chords(beat_times, chords):
+  beats_and_chords = []
+  beat_times_length = range(len(beat_times) - 1) 
+  for beat_time_index in beat_times_length:
     next_beat_time = beat_times[beat_time_index + 1]
-    # current_chord_change = chords
-    # chords_and_beats[current_beat_time]
+    current_beat_time = beat_times[beat_time_index]
+
+    current_chord = next((chord for chord in chords if current_beat_time <= float(chord["timestamp"]) < next_beat_time), None)
+
+    beat_and_chord = {
+      'start_time': current_beat_time,
+      'end_time': next_beat_time, 
+      'chord': current_chord['label'] if current_chord else None
+    }
+
+    beats_and_chords.append(beat_and_chord)
     
-  return None
+  return beats_and_chords
 
 def get_audio_data(audio_path):
   try:

@@ -24,3 +24,6 @@ def get_audio_path_argv():
     return audio_path
   except IndexError:
     raise NotAudioPathArgvError()
+
+def report_progress(progress):
+  print(f'PROGRESS: {progress}')

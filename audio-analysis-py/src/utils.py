@@ -4,9 +4,9 @@ import json
 import librosa
 from errors import NotAudioPathArgvError, AudioFileNotFoundError, VampPathDoesNotExistsError
 
-CWD = os.getcwd()
+SCRIPT_PATH = os.path.abspath(__file__)
 VAMP_PATH_NAME = 'VAMP_PATH'
-VAMP_PATH = os.path.join(CWD, 'lib', 'vamp-plugins')
+VAMP_PATH = os.path.join(os.path.dirname(SCRIPT_PATH), '..', 'lib', 'vamp-plugins')
 
 def set_vamp_path():
   if(not os.path.exists(VAMP_PATH)):
@@ -25,5 +25,6 @@ def get_audio_path_argv():
   except IndexError:
     raise NotAudioPathArgvError()
 
-def report_progress(progress):
-  print(f'PROGRESS: {progress}')
+def print_response(event, data):
+  response = to_json({'event': event, 'data': data})
+  print(response)

@@ -7,6 +7,8 @@ import { spawnPython } from '../utils/spawnPython.js'
 import AudioAnalysis from '../models/AudioAnalysis.js'
 import { YoutubeVideoDetails } from './youtubeService.js'
 
+const VENV_PYTHON_SCRIPT = path.join(process.cwd(), '..', 'audio-analysis-py', '.venv', 'scripts', 'python')
+
 const TEMP_AUDIO_FILES_PATH = 'temp'
 
 const youtubeAudiosCompletionEmitter = new EventEmitter()
@@ -42,9 +44,9 @@ const runAudioAnalysisProcess = async ({ youtubeId }) => {
     const audioAnalysis = await AudioAnalysis.create({
       youtubeId,
       title: videoDetails.title,
-      chords: audioAnalysisResult.chords,
       bpm: audioAnalysisResult.bpm,
-      beatTimes: audioAnalysisResult.beatTimes,
+      // chords: audioAnalysisResult.chords,
+      beats: audioAnalysisResult.beats,
       thumbnails: videoDetails.thumbnails,
       duration: videoDetails.duration
     })
@@ -58,13 +60,11 @@ const runAudioAnalysisProcess = async ({ youtubeId }) => {
 }
 
 const analyzeAudioWithPython = async ({ audioPath }) => {
-  try {
-    const PYTHON_FILE_PATH = path.join('python', 'src', 'main.py')
-    const { chords, bpm, beat_times: beatTimes } = await spawnPython({ pythonFilePath: PYTHON_FILE_PATH, args: [audioPath] })
-    return { chords, bpm, beatTimes }
-  } catch (error) {
-    return error
-  }
+  const filePath = path.join(process.cwd(), '..', 'audio-analysis-py', 'src', 'main.py')
+  const { bpm, beats, chords } = await spawnPython({ venvPythonScript: VENV_PYTHON_SCRIPT, filePath, args: [audioPath] })
+  const beatsMapped = beats.map(({ start_time: startTime, end_time: endTime }) => ({ startTime, endTime }))
+  const chordsMapped = chords.map(({ start_time: startTime, end_time: endTime, label }) => ({ startTime, endTime, label }))
+  return { bpm, beats: beatsMapped, chords: chordsMapped }
 }
 
 const youtubeMp3Converter = initializeYoutubeMp3Converter(TEMP_AUDIO_FILES_PATH)

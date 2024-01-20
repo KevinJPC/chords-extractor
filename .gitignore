@@ -1,8 +1,10 @@
 node_modules
 .env
 
-# Api
-api/python/.venv
+# python module
+audio-analysis-py/.venv
+
+# api module
 api/temp
 
 # App

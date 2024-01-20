@@ -1,36 +1,40 @@
 import { spawn } from 'node:child_process'
-import path from 'node:path'
+import readLine from 'node:readline'
 
-const PYTHON_CMD = path.join('python', '.venv', 'scripts', 'python')
+const DATA_EVENTS = {
+  PROGRESS: 'progress',
+  ERROR: 'error',
+  RESULT: 'result'
+}
 
-export const spawnPython = ({ pythonFilePath, args = [] }) => {
-  const spawnProcess = spawn(`${PYTHON_CMD}`, [pythonFilePath, ...args])
-  let response = ''
+export const spawnPython = ({ venvPythonScript, filePath, args = [] }) => {
+  const spawnProcess = spawn(`${venvPythonScript}`, [filePath, ...args])
+
+  const lineReader = readLine.createInterface({ input: spawnProcess.stdout })
 
   const promise = new Promise((resolve, reject) => {
-    spawnProcess.stdout.on('data', (data) => {
-      response += data.toString()
-    })
-
-    spawnProcess.stdout.on('end', () => {
+    lineReader.on('line', (line) => {
       try {
-        const { status, data, message } = JSON.parse(response)
-        if (status === 'fail') reject(message)
+        const { event, data } = JSON.parse(line)
 
-        resolve(data)
-      } catch (e) {
-        console.error('error', e)
-        reject(e)
+        if (event === DATA_EVENTS.PROGRESS) console.log(data)
+
+        if (event === DATA_EVENTS.ERROR) {
+          reject(Error(data.message))
+        }
+
+        if (event === DATA_EVENTS.RESULT) {
+          resolve(data)
+        }
+      } catch (error) {
+        reject(error)
       }
     })
 
-    spawnProcess.stderr.on('data', (data) => {
-      console.error('stderr', data.toString())
-    })
-
-    spawnProcess.on('error', (err) => {
-      console.error('spawn process error', err)
-      reject(err)
+    spawnProcess.on('close', (code) => {
+      if (code === 1) {
+        reject(Error('An error occurred during audio analysis'))
+      }
     })
   })
 

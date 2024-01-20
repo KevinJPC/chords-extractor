@@ -9,25 +9,23 @@ class AudioAnalysis {
   title
   duration
   thumbnails
-  chords
   bpm
-  beatTimes
+  beats
   createdAt
-  constructor ({ id, youtubeId, title, thumbnails, duration, chords, bpm, beatTimes, createdAt }) {
+  constructor ({ id, youtubeId, title, thumbnails, duration, bpm, beats, createdAt }) {
     this.id = id
     this.youtubeId = youtubeId
     this.title = title
     this.thumbnails = thumbnails
     this.duration = duration
-    this.chords = chords
     this.bpm = bpm
-    this.beatTimes = beatTimes
+    this.beats = beats
     this.createdAt = createdAt
   }
 
-  static async create ({ youtubeId, title, thumbnails, duration, chords, bpm, beatTimes }) {
+  static async create ({ youtubeId, title, thumbnails, duration, bpm, beats }) {
     try {
-      const doc = { youtubeId, title, thumbnails, duration, chords, bpm, beatTimes, createdAt: new Date() }
+      const doc = { youtubeId, title, thumbnails, duration, bpm, beats, createdAt: new Date() }
       const { insertedId } = await audioAnalysesCollection().insertOne(doc)
       const newAudioAnalysis = new AudioAnalysis({ id: insertedId, ...doc })
       return newAudioAnalysis
@@ -40,33 +38,13 @@ class AudioAnalysis {
   static async findById ({ id }) {
     const doc = await audioAnalysesCollection().findOne({ _id: new ObjectId(id) })
     if (!doc) return null
-    return new AudioAnalysis({
-      id: doc._id,
-      youtubeId: doc.youtubeId,
-      title: doc.title,
-      thumbnails: doc.thumbnails,
-      duration: doc.duration,
-      chords: doc.chords,
-      bpm: doc.bpm,
-      beatTimes: doc.beatTimes,
-      createdAt: doc.createdAt
-    })
+    return new AudioAnalysis({ id: doc.id, ...doc })
   }
 
   static async findByYoutubeId ({ youtubeId }) {
     const doc = await audioAnalysesCollection().findOne({ youtubeId })
     if (!doc) return null
-    return new AudioAnalysis({
-      id: doc._id,
-      youtubeId: doc.youtubeId,
-      title: doc.title,
-      thumbnails: doc.thumbnails,
-      duration: doc.duration,
-      chords: doc.chords,
-      bpm: doc.bpm,
-      beatTimes: doc.beatTimes,
-      createdAt: doc.createdAt
-    })
+    return new AudioAnalysis({ id: doc.id, ...doc })
   }
 
   static async findAllByYoutubeIds ({ youtubeIds }) {

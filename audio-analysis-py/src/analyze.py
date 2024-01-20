@@ -1,6 +1,6 @@
 import librosa
 import vamp
-from utils import report_progress
+from utils import print_response
 
 CHORDINO_PARAMETERS = {
     'useNNLS': 1, # 0 or 1, default 1
@@ -12,40 +12,53 @@ CHORDINO_PARAMETERS = {
 }
 
 def analyze_audio(audio_path):
-  report_progress(0)
+  print_response('progress', {'progress': 0})
   
   audio_data, sample_rate = get_audio_data(audio_path)
-  report_progress(10)
+  print_response('progress', {'progress': 10})
 
   bpm, beat_times = recognize_bpm_and_beat_times(audio_data, sample_rate)
-  report_progress(50)
+  print_response('progress', {'progress': 50})
 
   chords = recognize_chords(audio_data, sample_rate)
-  report_progress(90)
+  print_response('progress', {'progress': 90})
+  
+  beats_mapped = map_beats(beat_times)
+  chords_mapped = map_chords_by_beats(chords, beats_mapped)
+  print_response('progress', {'progress': 100})
 
-  beats_and_chords = map_beats_and_chords(beat_times, chords)
-  report_progress(100)
+  return bpm, beats_mapped, chords_mapped
 
-  return bpm, beats_and_chords
-
-def map_beats_and_chords(beat_times, chords):
-  beats_and_chords = []
+def map_beats(beat_times):
+  beats_mapped = []
   beat_times_length = range(len(beat_times) - 1) 
   for beat_time_index in beat_times_length:
     next_beat_time = beat_times[beat_time_index + 1]
     current_beat_time = beat_times[beat_time_index]
 
-    current_chord = next((chord for chord in chords if current_beat_time <= float(chord["timestamp"]) < next_beat_time), None)
-
-    beat_and_chord = {
+    beat = {
       'start_time': current_beat_time,
-      'end_time': next_beat_time, 
-      'chord': current_chord['label'] if current_chord else None
-    }
+      'end_time': next_beat_time
+      }
 
-    beats_and_chords.append(beat_and_chord)
+    beats_mapped.append(beat)
     
-  return beats_and_chords
+  return beats_mapped
+
+def map_chords_by_beats(chords, beats):
+  chords_mapped = []
+  for beat in beats:
+    start_time, end_time = beat["start_time"], beat["end_time"]
+    current_chord = next((chord for chord in chords if start_time <= float(chord["timestamp"]) < end_time), None)
+    if current_chord != None:
+      chord = {
+        'start_time': start_time,
+        'end_time': end_time, 
+        'label': current_chord['label']
+      }
+      chords_mapped.append(chord)
+    
+  return chords_mapped
 
 def get_audio_data(audio_path):
   try:

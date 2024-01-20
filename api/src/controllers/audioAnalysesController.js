@@ -15,17 +15,7 @@ export const getAudioAnalysis = tryCatch(async (req, res) => {
 
   res.status(200).json({
     status: 'success',
-    data: {
-      id: audioAnalysis.id,
-      youtubeId: audioAnalysis.youtubeId,
-      title: audioAnalysis.title,
-      duration: audioAnalysis.duration,
-      thumbnails: audioAnalysis.thumbnails,
-      chords: audioAnalysis.chords,
-      bpm: audioAnalysis.bpm,
-      beatTimes: audioAnalysis.beatTimes,
-      createdAt: audioAnalysis.createdAt
-    }
+    data: { ...audioAnalysis }
   })
 }
 )
@@ -39,17 +29,7 @@ export const createAudioAnalysis = tryCatch(async (req, res) => {
   const newAudioAnalysis = await analyzeAudio({ youtubeId })
 
   const response = {
-    data: {
-      id: newAudioAnalysis.id,
-      youtubeId: newAudioAnalysis.youtubeId,
-      title: newAudioAnalysis.title,
-      duration: newAudioAnalysis.duration,
-      thumbnails: newAudioAnalysis.thumbnails,
-      bpm: newAudioAnalysis.bpm,
-      chords: newAudioAnalysis.chords,
-      beatTimes: newAudioAnalysis.beatTimes,
-      createdAt: newAudioAnalysis.createdAt
-    }
+    data: { ...newAudioAnalysis }
   }
   writeSseResponse(res, { event: 'success', data: response })
   res.end()

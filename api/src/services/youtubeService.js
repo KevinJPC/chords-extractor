@@ -17,14 +17,13 @@ export class YoutubeList {
   async mappedResultsBaseOnAnalyzed ({ resultsAlreadyAnalyzed }) {
     this.results = this.results.map(
       (videoCompact) => {
-        const audioAnalysis = resultsAlreadyAnalyzed.find(audioAnalysis => audioAnalysis.youtubeId === videoCompact.id)
-
+        const audioAnalysis = resultsAlreadyAnalyzed.find(({ youtubeId }) => youtubeId === videoCompact.id)
         return {
           id: videoCompact.id,
           title: videoCompact.title,
           thumbnails: videoCompact.thumbnails,
           duration: videoCompact.duration,
-          audioAnalysisId: audioAnalysis?.id
+          originalAudioAnalysisId: audioAnalysis?._id
         }
       })
   }

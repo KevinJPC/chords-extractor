@@ -1,0 +1,22 @@
+.bars-list {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 1fr;
+  list-style: none;
+  gap: 5px;
+}
+
+.chords-list {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 1fr;
+
+  list-style: none;
+  /* gap: 5px; */
+}
+
+.chords-list__list-time {}
+
+.chord {
+  border: 1px solid red;
+  width: 45px;
+  height: 45px;
+}

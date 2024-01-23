@@ -1,0 +1,36 @@
+.background {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: -10;
+  width: 100%;
+  height: 100%;
+}
+
+.background__color {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  --tw-bg-opacity: 1;
+  background-color: rgb(2 6 23/var(--tw-bg-opacity));
+}
+
+.background__radial {
+  position: absolute;
+  background-image: radial-gradient(circle farthest-side, rgba(255, 0, 182, .15), hsla(0, 0%, 100%, 0));
+  border-radius: 9999px;
+  height: 500px;
+  width: 500px;
+  top: -10%;
+  bottom: 0;
+}
+
+.background__radial--left {
+  right: 0;
+  left: -20%;
+}
+
+.background__radial--right {
+  /* left: 0; */
+  right: -20%;
+}

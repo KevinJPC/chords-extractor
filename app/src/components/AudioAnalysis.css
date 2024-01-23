@@ -1,0 +1,93 @@
+:root {
+  /* --video-wrapper-height: 1000px;
+  --video-wrapper-display: none;
+  --video-control-display: block; */
+}
+
+.plyr iframe[id^=youtube] {
+  top: -50%;
+  height: 200%;
+}
+
+.plyr {
+  /* width: 500px; */
+  border-radius: 10px;
+}
+
+/* Controls alignment */
+.plyr--video .plyr__controls {
+  gap: 10px;
+
+  padding-left: 15px;
+  padding-right: 15px;
+  padding-bottom: 12px;
+}
+
+.plyr__controls__item.plyr__time--current.plyr__time,
+.plyr__controls__item.plyr__volume,
+.plyr__controls__item.plyr__control {
+  padding: 0;
+  margin: 0;
+}
+
+.plyr__volume input[type=range] {
+  margin: 0;
+}
+
+/* Put play button at the begin */
+.plyr__controls__item.plyr__control {
+  order: -1;
+  margin: 0;
+  padding-left: 0;
+}
+
+/* Tooltip */
+
+.plyr__tooltip {
+  bottom: 7.5px;
+  background-color: transparent;
+  padding: 0;
+  color: white;
+  font-size: 12px;
+}
+
+.plyr__tooltip::before {
+  display: none;
+}
+
+.plyr--video .plyr__control:hover {
+  background-color: transparent;
+  color: #00b2ff;
+  color: var(--plyr-video-control-background-hover, var(--plyr-color-main, var(--plyr-color-main, #00b2ff)));
+}
+
+/* To hide video */
+
+.plyr__video-wrapper {
+  max-height: var(--video-wrapper-height);
+  transition: max-height .3s ease;
+}
+
+.plyr {
+  /* height: 53px; */
+  /* height: min-content; */
+}
+
+.plyr__video-wrapper::after {
+  /* position: var(--video-wrapper-display); */
+  position: absolute;
+  z-index: 2;
+  content: "";
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0;
+  cursor: pointer;
+  opacity: var(--video-wrapper-opacity);
+  background-color: purple;
+  transition: opacity .3s ease;
+}
+
+.plyr--full-ui.plyr--video .plyr__control--overlaid {
+  display: var(--video-control-display);
+}

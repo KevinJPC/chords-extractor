@@ -5,24 +5,24 @@ import audio from './routes/audioAnalyses.js'
 import cors from 'cors'
 import { errorHandler } from './middlewares/errorHandler.js'
 
-await connectToDb()
+async function main () {
+  await connectToDb()
 
-const app = express()
-const port = process.env.PORT || 3000
+  const app = express()
+  const port = process.env.PORT || 3000
 
-app.use(cors())
-app.use(express.json())
+  app.use(cors())
+  app.use(express.json())
 
-app.use(morgan('dev'))
+  app.use(morgan('dev'))
 
-app.use('/api/audio-analyses', audio)
+  app.use('/api/audio-analyses', audio)
 
-app.get('/test', (req, res) => {
-  res.send(`test ${Math.random()}`)
-})
+  app.use(errorHandler)
 
-app.use(errorHandler)
+  app.listen(port, () => {
+    console.log(`Server running on port http://localhost:${port}`)
+  })
+}
 
-app.listen(port, () => {
-  console.log(`Server running on port http://localhost:${port}`)
-})
+main()

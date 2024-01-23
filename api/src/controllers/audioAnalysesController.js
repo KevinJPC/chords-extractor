@@ -23,7 +23,7 @@ export const createAudioAnalysis = tryCatch(async (req, res) => {
   res.writeHead(200, sseHeaders)
 
   const { youtubeId } = req.body
-  const audioAnalysis = await AudioAnalysis.findByYoutubeId({ youtubeId })
+  const audioAnalysis = await AudioAnalysis.findOriginalByYoutubeId({ youtubeId })
   if (audioAnalysis) throw new AppError(AUDIO_ALREADY_ANALYZED, 'Audio already analyzed.', 409)
 
   const newAudioAnalysis = await analyzeAudio({ youtubeId })
@@ -35,26 +35,26 @@ export const createAudioAnalysis = tryCatch(async (req, res) => {
   res.end()
 })
 
-export const getAllAudioAnalysesBySource = (req, res, next) => {
+export const getAllOriginalsAudioAnalysesBySource = (req, res, next) => {
   const { source } = req.query
 
   const SOURCES = {
     YOUTUBE: 'youtube'
   }
   const GET_ALL_AUDIO_ANALYSES_CONTROLLERS_BY_SOURCES = {
-    [SOURCES.YOUTUBE]: getAllAudioAnalysesByYoutubeSearch
+    [SOURCES.YOUTUBE]: getAllOriginalsAudioAnalysesByYoutubeSearch
   }
 
   const searchController = GET_ALL_AUDIO_ANALYSES_CONTROLLERS_BY_SOURCES[source] || getAllAudioAnalyses
   searchController(req, res, next)
 }
 
-export const getAllAudioAnalysesByYoutubeSearch = tryCatch(async (req, res) => {
+export const getAllOriginalsAudioAnalysesByYoutubeSearch = tryCatch(async (req, res) => {
   const { searchQuery, continuation } = req.query
 
   const youtubeService = await YoutubeList.search({ searchQuery, continuation })
   const resultsIds = youtubeService.getResultsIds()
-  const resultsAlreadyAnalyzed = await AudioAnalysis.findAllByYoutubeIds({ youtubeIds: resultsIds })
+  const resultsAlreadyAnalyzed = await AudioAnalysis.findAllOriginalsByYoutubeIds({ youtubeIds: resultsIds })
   youtubeService.mappedResultsBaseOnAnalyzed({ resultsAlreadyAnalyzed })
 
   res.status(200).json({

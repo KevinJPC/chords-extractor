@@ -1,8 +1,8 @@
 import { Router } from 'express'
-import { createAudioAnalysis, getAllAudioAnalysesBySource, getAudioAnalysis } from '../controllers/audioAnalysesController.js'
+import { createAudioAnalysis, getAllOriginalsAudioAnalysesBySource, getAudioAnalysis } from '../controllers/audioAnalysesController.js'
 
 const router = Router()
-router.get('/', getAllAudioAnalysesBySource)
+router.get('/', getAllOriginalsAudioAnalysesBySource)
 router.get('/:id', getAudioAnalysis)
 router.post('/', createAudioAnalysis)
 

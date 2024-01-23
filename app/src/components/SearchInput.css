@@ -1,0 +1,26 @@
+.search {
+  max-width: 400px;
+  width: 100%;
+}
+
+.search__form {
+  display: flex;
+}
+
+.search__button,
+.search__input {
+  border: none;
+}
+
+.search__input {
+  flex: 1;
+  border-top-left-radius: 999px;
+  border-bottom-left-radius: 999px;
+  padding: 0 .7rem;
+}
+
+.search__button {
+  padding: .7rem 0.5rem;
+  border-top-right-radius: 999px;
+  border-bottom-right-radius: 999px;
+}

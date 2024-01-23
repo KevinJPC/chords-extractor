@@ -100,15 +100,15 @@ class AudioAnalysis {
     return audioAnalysis
   }
 
-  static async findByYoutubeId ({ youtubeId }) {
-    const audioAnalysis = await audioAnalysesCollection().findOne({ youtubeId })
+  static async findOriginalByYoutubeId ({ youtubeId }) {
+    const audioAnalysis = await audioAnalysesCollection().findOne({ youtubeId, isOriginal: true })
     if (!audioAnalysis) return null
     return audioAnalysis
   }
 
-  static async findAllByYoutubeIds ({ youtubeIds }) {
+  static async findAllOriginalsByYoutubeIds ({ youtubeIds }) {
     const audioAnalyses = []
-    await audioAnalysesCollection().find({ youtubeId: { $in: youtubeIds } })
+    await audioAnalysesCollection().find({ youtubeId: { $in: youtubeIds }, isOriginal: true })
       .forEach((audioAnalysis) => {
         audioAnalyses.push(audioAnalysis)
       })

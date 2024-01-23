@@ -17,7 +17,9 @@ export const spawnPython = ({ venvPythonScript, filePath, args = [] }) => {
       try {
         const { event, data } = JSON.parse(line)
 
-        if (event === DATA_EVENTS.PROGRESS) console.log(data)
+        if (event === DATA_EVENTS.PROGRESS) {
+          //
+        }
 
         if (event === DATA_EVENTS.ERROR) {
           reject(Error(data.message))

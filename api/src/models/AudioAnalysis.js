@@ -7,27 +7,61 @@ class AudioAnalysis {
   id
   youtubeId
   title
-  duration
   thumbnails
+  duration
+  isOriginal
   bpm
   beats
+  chordsPerBeats
+  numRatings
+  totalRating
+  user
+  editTitle
   createdAt
-  constructor ({ id, youtubeId, title, thumbnails, duration, bpm, beats, createdAt }) {
+  modifiedAt
+  constructor ({
+    id, youtubeId, title, thumbnails, duration, isOriginal, bpm, beats, chordsPerBeats,
+    numRatings, totalRating,
+    user, editTitle, createdAt, modifiedAt
+  }) {
     this.id = id
     this.youtubeId = youtubeId
     this.title = title
     this.thumbnails = thumbnails
     this.duration = duration
+    this.isOriginal = isOriginal
     this.bpm = bpm
     this.beats = beats
+    this.chordsPerBeats = chordsPerBeats
+    this.numRatings = numRatings
+    this.totalRating = totalRating
+
+    this.user = user
+    this.editTitle = editTitle
+
     this.createdAt = createdAt
+    this.modifiedAt = modifiedAt
   }
 
-  static async create ({ youtubeId, title, thumbnails, duration, bpm, beats }) {
+  static async create ({ youtubeId, title, thumbnails, duration, bpm, beats, chordsPerBeats }) {
     try {
-      const doc = { youtubeId, title, thumbnails, duration, bpm, beats, createdAt: new Date() }
+      const date = new Date()
+      const doc = {
+        youtubeId,
+        title,
+        thumbnails,
+        duration,
+        isOriginal: true,
+        bpm,
+        beats,
+        chordsPerBeats,
+        numRatings: 0,
+        totalRating: 0,
+        createdAt: date,
+        modifiedAt: date
+      }
       const { insertedId } = await audioAnalysesCollection().insertOne(doc)
-      const newAudioAnalysis = new AudioAnalysis({ id: insertedId, ...doc })
+      const newAudioAnalysis = { _id: insertedId, ...doc }
       return newAudioAnalysis
     } catch (error) {
       if (error.code === 11000) throw new AppError(AUDIO_ALREADY_ANALYZED, 'Audio already analyze.', 409)
@@ -35,23 +69,48 @@ class AudioAnalysis {
     }
   }
 
+  static async createCopy ({ fromId, editTitle, newChordsPerBeats }) {
+    // try {
+    const audioAnalysisToCopy = audioAnalysesCollection().findOne({ _id: new ObjectId(fromId) })
+    if (!audioAnalysisToCopy) return null
+
+    const date = new Date()
+    const doc = {
+      ...audioAnalysisToCopy,
+      chordsPerBeats: newChordsPerBeats,
+      isOriginal: false,
+      numRatings: 0,
+      totalRating: 0,
+      createdAt: date,
+      modifiedAt: date,
+      editTitle
+      // user
+    }
+    const { insertedId } = await audioAnalysesCollection().insertOne(doc)
+    const newAudioAnalysisCopy = { _id: insertedId, ...doc }
+    return newAudioAnalysisCopy
+    // } catch (error) {
+    // throw error
+    // }
+  }
+
   static async findById ({ id }) {
-    const doc = await audioAnalysesCollection().findOne({ _id: new ObjectId(id) })
-    if (!doc) return null
-    return new AudioAnalysis({ id: doc.id, ...doc })
+    const audioAnalysis = await audioAnalysesCollection().findOne({ _id: new ObjectId(id) })
+    if (!audioAnalysis) return null
+    return audioAnalysis
   }
 
   static async findByYoutubeId ({ youtubeId }) {
-    const doc = await audioAnalysesCollection().findOne({ youtubeId })
-    if (!doc) return null
-    return new AudioAnalysis({ id: doc.id, ...doc })
+    const audioAnalysis = await audioAnalysesCollection().findOne({ youtubeId })
+    if (!audioAnalysis) return null
+    return audioAnalysis
   }
 
   static async findAllByYoutubeIds ({ youtubeIds }) {
     const audioAnalyses = []
     await audioAnalysesCollection().find({ youtubeId: { $in: youtubeIds } })
-      .forEach(({ _id: id, ...doc }) => {
-        audioAnalyses.push(new AudioAnalysis({ id, ...doc }))
+      .forEach((audioAnalysis) => {
+        audioAnalyses.push(audioAnalysis)
       })
     return audioAnalyses
   }

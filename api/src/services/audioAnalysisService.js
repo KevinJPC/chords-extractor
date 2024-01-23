@@ -45,7 +45,7 @@ const runAudioAnalysisProcess = async ({ youtubeId }) => {
       youtubeId,
       title: videoDetails.title,
       bpm: audioAnalysisResult.bpm,
-      // chords: audioAnalysisResult.chords,
+      chordsPerBeats: audioAnalysisResult.chordsPerBeats,
       beats: audioAnalysisResult.beats,
       thumbnails: videoDetails.thumbnails,
       duration: videoDetails.duration
@@ -61,10 +61,9 @@ const runAudioAnalysisProcess = async ({ youtubeId }) => {
 
 const analyzeAudioWithPython = async ({ audioPath }) => {
   const filePath = path.join(process.cwd(), '..', 'audio-analysis-py', 'src', 'main.py')
-  const { bpm, beats, chords } = await spawnPython({ venvPythonScript: VENV_PYTHON_SCRIPT, filePath, args: [audioPath] })
+  const { bpm, beats, chords_per_beats: chordsPerBeats } = await spawnPython({ venvPythonScript: VENV_PYTHON_SCRIPT, filePath, args: [audioPath] })
   const beatsMapped = beats.map(({ start_time: startTime, end_time: endTime }) => ({ startTime, endTime }))
-  const chordsMapped = chords.map(({ start_time: startTime, end_time: endTime, label }) => ({ startTime, endTime, label }))
-  return { bpm, beats: beatsMapped, chords: chordsMapped }
+  return { bpm, beats: beatsMapped, chordsPerBeats }
 }
 
 const youtubeMp3Converter = initializeYoutubeMp3Converter(TEMP_AUDIO_FILES_PATH)

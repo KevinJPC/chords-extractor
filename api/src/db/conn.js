@@ -25,7 +25,7 @@ export const connectToDb = async () => {
 }
 
 const createIndexes = async () => {
-  await audioAnalysesCollection().createIndex({ youtubeId: 1 }, { unique: true })
+  await audioAnalysesCollection().createIndex({ youtubeId: 1, user: 1 })
 }
 
 export const db = () => {

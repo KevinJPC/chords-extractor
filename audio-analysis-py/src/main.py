@@ -8,9 +8,9 @@ def main():
 
         audio_path = get_audio_path_argv()
 
-        bpm, beats, chords = analyze_audio(audio_path)
+        bpm, beats, chords_per_beats = analyze_audio(audio_path)
 
-        print_response('result', {'bpm': bpm, 'beats': beats, 'chords': chords})
+        print_response('result', {'bpm': bpm, 'beats': beats, 'chords_per_beats': chords_per_beats})
 
     except Error as e:
         print_response('error', {'message': e.args[0], 'code': e.code})

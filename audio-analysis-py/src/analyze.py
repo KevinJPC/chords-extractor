@@ -23,11 +23,11 @@ def analyze_audio(audio_path):
   chords = recognize_chords(audio_data, sample_rate)
   print_response('progress', {'progress': 90})
   
-  beats_mapped = map_beats(beat_times)
-  chords_mapped = map_chords_by_beats(chords, beats_mapped)
+  beats = map_beats(beat_times)
+  chords_per_beats = map_chords_per_beats(chords, beats)
   print_response('progress', {'progress': 100})
 
-  return bpm, beats_mapped, chords_mapped
+  return bpm, beats, chords_per_beats
 
 def map_beats(beat_times):
   beats_mapped = []
@@ -45,20 +45,15 @@ def map_beats(beat_times):
     
   return beats_mapped
 
-def map_chords_by_beats(chords, beats):
-  chords_mapped = []
+def map_chords_per_beats(chords, beats):
+  chords_per_beats = []
   for beat in beats:
     start_time, end_time = beat["start_time"], beat["end_time"]
-    current_chord = next((chord for chord in chords if start_time <= float(chord["timestamp"]) < end_time), None)
-    if current_chord != None:
-      chord = {
-        'start_time': start_time,
-        'end_time': end_time, 
-        'label': current_chord['label']
-      }
-      chords_mapped.append(chord)
+    current_chord = next((chord["label"] for chord in chords if start_time <= float(chord["timestamp"]) < end_time), None)
+      
+    chords_per_beats.append(current_chord)
     
-  return chords_mapped
+  return chords_per_beats
 
 def get_audio_data(audio_path):
   try:

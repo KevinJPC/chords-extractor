@@ -18,12 +18,25 @@ export class YoutubeList {
     this.results = this.results.map(
       (videoCompact) => {
         const audioAnalysis = resultsAlreadyAnalyzed.find(({ youtubeId }) => youtubeId === videoCompact.id)
+
+        if (audioAnalysis !== undefined) {
+          return {
+            _id: audioAnalysis._id,
+            title: audioAnalysis.title,
+            youtubeId: audioAnalysis.youtubeId,
+            thumbnails: audioAnalysis.thumbnails,
+            duration: audioAnalysis.duration,
+            bpm: audioAnalysis.bpm,
+            chordsPerBeats: audioAnalysis.chordsPerBeats,
+            edits: audioAnalysis.edits
+          }
+        }
+
         return {
-          id: videoCompact.id,
+          youtubeId: videoCompact.id,
           title: videoCompact.title,
           thumbnails: videoCompact.thumbnails,
-          duration: videoCompact.duration,
-          originalAudioAnalysisId: audioAnalysis?._id
+          duration: videoCompact.duration
         }
       })
   }

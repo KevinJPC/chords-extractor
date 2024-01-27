@@ -1,7 +1,6 @@
 import './Search.css'
 import { useEffect, useState } from 'react'
 import { getAllAudioAnalysesByYoutubeSearch } from '../services/audioAnalyses'
-import { Link } from 'wouter'
 import { useRoute } from '../hooks/wouterWrapper'
 import { AudioCard } from '../components/AudioCard'
 
@@ -35,9 +34,16 @@ export const Search = () => {
     <div className='container'>
       <ul className='list'>
         {
-      data?.results.map(({ id, title, thumbnails, originalAudioAnalysisId }) =>
-        <li key={id}>
-          <AudioCard thumbnail={thumbnails[0].url} title={title} originalAudioAnalysisId={originalAudioAnalysisId} />
+      data?.results.map(({ _id, youtubeId, title, thumbnails, edits, chordsPerBeats }) =>
+        <li key={youtubeId}>
+          <AudioCard
+            _id={_id}
+            title={title}
+            youtubeId={youtubeId}
+            thumbnail={thumbnails[0].url}
+            edits={edits}
+            chordsPerBeats={chordsPerBeats}
+          />
         </li>
       )
     }

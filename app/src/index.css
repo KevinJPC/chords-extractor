@@ -78,6 +78,7 @@ input,
 button {
   font-family: inherit;
   color: inherit;
+  font-size: inherit;
 }
 
 a,

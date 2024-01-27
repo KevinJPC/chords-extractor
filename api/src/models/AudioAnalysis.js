@@ -55,6 +55,7 @@ class AudioAnalysis {
         bpm,
         beats,
         chordsPerBeats,
+        edits: 0,
         numRatings: 0,
         totalRating: 0,
         createdAt: date,

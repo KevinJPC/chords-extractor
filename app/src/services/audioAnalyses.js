@@ -27,5 +27,15 @@ export const getAllAudioAnalysesByYoutubeSearch = async ({ searchQuery, continua
   if (continuation) endpoint = endpoint.concat(`&continuation=${continuation}`)
   const res = await fetch(endpoint)
   const { data } = await res.json()
-  return data
+  const mappedResults = data.results.map((audioAnalysis) => ({
+    _id: audioAnalysis?._id,
+    title: audioAnalysis?.title,
+    youtubeId: audioAnalysis?.youtubeId,
+    thumbnails: audioAnalysis?.thumbnails,
+    duration: audioAnalysis?.duration,
+    bpm: audioAnalysis?.bpm,
+    chordsPerBeats: audioAnalysis?.chordsPerBeats,
+    edits: audioAnalysis?.edits
+  }))
+  return { results: mappedResults, continuation: data.continuation }
 }

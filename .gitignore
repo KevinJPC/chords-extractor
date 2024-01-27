@@ -3,6 +3,7 @@ node_modules
 
 # python module
 audio-analysis-py/.venv
+audio-analysis-py/src/__pycache__
 
 # api module
 api/temp

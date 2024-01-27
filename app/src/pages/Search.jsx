@@ -1,3 +1,4 @@
+import './Search.css'
 import { useEffect, useState } from 'react'
 import { getAllAudioAnalysesByYoutubeSearch } from '../services/audioAnalyses'
 import { Link } from 'wouter'
@@ -32,10 +33,12 @@ export const Search = () => {
 
   return (
     <div className='container'>
-      <ul>
+      <ul className='list'>
         {
       data?.results.map(({ id, title, thumbnails, originalAudioAnalysisId }) =>
-        <AudioCard key={id} thumbnail={thumbnails[0].url} title={title} originalAudioAnalysisId={originalAudioAnalysisId} />
+        <li key={id}>
+          <AudioCard thumbnail={thumbnails[0].url} title={title} originalAudioAnalysisId={originalAudioAnalysisId} />
+        </li>
       )
     }
       </ul>

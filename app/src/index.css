@@ -15,7 +15,7 @@
   font-weight: 400;
   src: local('Lato-Regular'),
     local('Lato Regular'),
-    url('./assets/Lato/Lato-Regular.ttf') format('TrueType');
+    url('/Lato/Lato-Regular.ttf') format('TrueType');
   /* font-display: swap; */
 }
 
@@ -26,7 +26,7 @@
 
   src: local('Lato-Light'),
     local('Lato Light'),
-    url('./assets/Lato/Lato-Light.ttf') format('TrueType');
+    url('/Lato/Lato-Light.ttf') format('TrueType');
   /* font-display: swap; */
 }
 
@@ -37,7 +37,7 @@
 
   src: local('Lato-Bold'),
     local('Lato Bold'),
-    url('./assets/Lato/Lato-Bold.ttf') format('TrueType');
+    url('/Lato/Lato-Bold.ttf') format('TrueType');
   /* font-display: swap; */
 }
 
@@ -51,6 +51,12 @@
   /* --blue-100: #0A011D; */
   --blue-100: #0A0125;
   --blue-200: #2A2447;
+  --green: #59C3C3;
+
+  --text-xs: .75rem;
+  --text-sm: .875rem;
+  --text-md: 1rem;
+  --text-lg: 1.25rem;
 
   background-color: var(--black);
 }
@@ -77,6 +83,10 @@ button {
 a,
 button {
   cursor: pointer;
+}
+
+a {
+  text-decoration: none;
 }
 
 svg {

@@ -1,0 +1,17 @@
+.header {
+  height: 80px;
+  display: flex;
+  align-items: center;
+  width: 90%;
+  margin: 0 auto;
+}
+
+.logo {
+  font-size: 1rem;
+  font-weight: 900;
+  color: var(--white);
+}
+
+.logo__accent {
+  color: var(--purple)
+}

@@ -1,0 +1,33 @@
+.audio-card {
+  height: 80px;
+  display: flex;
+  flex-direction: row;
+  padding: .5rem;
+  border: 1px solid var(--blue-200);
+  background-color: var(--blue-100);
+  border-radius: 5px;
+
+  gap: 1rem;
+}
+
+.audio-card__figure {
+  height: 100%;
+  aspect-ratio: 16/9;
+  object-fit: cover;
+
+  border-radius: 2.5px;
+  overflow: hidden;
+}
+
+.audio-card__img {
+  width: 100%;
+}
+
+.audio-card__title {
+  font-size: 1rem;
+}
+
+.audio-card__detail,
+.audio-card__footer {
+  font-weight: 300;
+}

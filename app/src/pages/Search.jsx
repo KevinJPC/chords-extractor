@@ -1,57 +1,49 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { getAllAudioAnalysesByYoutubeSearch } from '../services/audioAnalyses'
 import { Link } from 'wouter'
+import { useRoute } from '../hooks/wouterWrapper'
+import { AudioCard } from '../components/AudioCard'
 
 export const Search = () => {
-  const [searchResult, setSearchResult] = useState(null)
+  const [match, { q: search }] = useRoute('/search')
+
+  const [data, setData] = useState(null)
 
   const fetchAllAudioAnalysisByYoutubeSearch = async ({ searchQuery, continuation }) => {
     try {
       const data = await getAllAudioAnalysesByYoutubeSearch({ searchQuery, continuation })
-      return data
+      console.log(data)
+      setData(data)
     } catch (error) {
       console.log(error)
     }
   }
 
-  const handleSubmit = async (e) => {
-    e.preventDefault()
-    const formData = new FormData(e.target)
-    const { search } = Array.from(formData).reduce((acc, [key, value]) => ({ ...acc, [key]: value }), {})
-    const result = await fetchAllAudioAnalysisByYoutubeSearch({ searchQuery: search })
-    setSearchResult(result)
-  }
+  useEffect(() => {
+    fetchAllAudioAnalysisByYoutubeSearch({ searchQuery: search })
+  }, [])
 
-  const handleClick = async () => {
-    const { continuation } = searchResult
-    const result = await fetchAllAudioAnalysisByYoutubeSearch({ continuation })
-    const newResults = [...searchResult.results, ...result.results]
-    setSearchResult({ results: newResults, continuation: result.continuation })
-  }
+  // const handleClick = async () => {
+  //   const { continuation } = searchResult
+  //   const result = await fetchAllAudioAnalysisByYoutubeSearch({ continuation })
+  //   const newResults = [...searchResult.results, ...result.results]
+  //   setSearchResult({ results: newResults, continuation: result.continuation })
+  // }
 
   return (
-    <>
+    <div className='container'>
       <ul>
         {
-    searchResult?.results.map(
-      ({ id, title, originalAudioAnalysisId }) => {
-        const isAnalyzed = originalAudioAnalysisId !== undefined
-        return (
-          <li key={id}>
-            <h1>{title} - {id}</h1>
-            <span>{isAnalyzed ? 'Analyzed' : 'Not analyzed'}</span>
-            {isAnalyzed && <Link href={`/chords/${originalAudioAnalysisId}`}><a>Button</a></Link>}
-          </li>
-        )
-      }
-    )
-  }
+      data?.results.map(({ id, title, thumbnails, originalAudioAnalysisId }) =>
+        <AudioCard key={id} thumbnail={thumbnails[0].url} title={title} originalAudioAnalysisId={originalAudioAnalysisId} />
+      )
+    }
       </ul>
 
       {
-searchResult?.continuation &&
-  <button onClick={handleClick}>Load more</button>
-}
-    </>
+      data?.continuation &&
+        <button onClick={() => {}}>Load more</button>
+    }
+    </div>
   )
 }

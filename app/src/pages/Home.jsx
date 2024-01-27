@@ -3,12 +3,18 @@ import './Home.css'
 
 export const Home = () => {
   return (
-    <section className='home'>
-      <h1 className='title'>
-        C#ords extrator
+    <section className='landing container container--small'>
+      <h1 className='landing__title'>
+        C<span className='landing__accent'>#</span>ords extrator
       </h1>
 
-      <SearchInput handleSubmit={{}} />
+      <p className='landing__description'>
+        Chords extractor allows you to extract chords from any
+        YouTube video and watch them while it’s playing, you can
+        also either make your own version or watch other user edits.
+      </p>
+
+      <SearchInput className='lading__search' />
 
     </section>
   )

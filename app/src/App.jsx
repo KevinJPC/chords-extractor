@@ -6,9 +6,7 @@ const App = () => {
   return (
     <>
       <Background />
-      <div className='container'>
-        <Router />
-      </div>
+      <Router />
     </>
   )
 }

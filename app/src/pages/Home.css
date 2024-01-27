@@ -1,19 +1,29 @@
-.home {
-  min-height: 100svh;
+.landing {
+  padding-top: 8rem;
 
   display: flex;
   align-items: center;
-  justify-content: center;
-
   flex-direction: column;
-
-  gap: 2rem;
 }
 
-.title {
-  color: #fff;
+.landing__title {
+  color: var(--white);
   text-align: center;
   text-wrap: balance;
   font-size: 2.5rem;
   line-height: 1;
+  text-wrap: balance;
+}
+
+.landing__accent {
+  color: var(--purple);
+}
+
+.landing__description {
+  margin-top: 1.5rem;
+  margin-bottom: 3rem;
+  color: var(--white);
+  font-weight: 300;
+  text-wrap: pretty;
+  line-height: 1.5;
 }

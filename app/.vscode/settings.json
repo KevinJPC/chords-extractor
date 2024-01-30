@@ -1,0 +1,13 @@
+{
+  "editor.formatOnSave": false,
+  "standard.autoFixOnSave": true,
+  "peacock.color": "#0062bd",
+  "workbench.colorCustomizations": {
+    "statusBar.background": "#0062bd",
+    "statusBar.foreground": "#e7e7e7",
+    "statusBarItem.hoverBackground": "#007cf0",
+    "statusBarItem.remoteBackground": "#0062bd",
+    "statusBarItem.remoteForeground": "#e7e7e7",
+    "tab.activeBorder": "#007cf0"
+  },
+}

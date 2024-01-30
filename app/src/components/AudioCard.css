@@ -16,7 +16,7 @@
   border: 1px solid var(--blue-200);
 }
 
-.audio-card__figure {
+.audio-card__thumbnail {
   flex: 0 1 auto;
   width: 150px;
   aspect-ratio: 16/9;
@@ -30,7 +30,7 @@
     flex-direction: column;
   }
 
-  .audio-card__figure {
+  .audio-card__thumbnail {
     width: 100%;
   }
 }
@@ -43,7 +43,7 @@
 
 }
 
-.audio-card__info {
+.audio-card__content {
   flex: 1;
   display: flex;
   flex-direction: column;
@@ -65,7 +65,7 @@
   overflow: hidden;
 }
 
-.audio-card__details {
+.audio-card__body {
   display: flex;
   flex-direction: row;
   width: 100%;
@@ -73,7 +73,7 @@
   gap: .75rem;
 }
 
-.audio-card__list {
+.audio-card__details {
   gap: .75rem;
   display: flex;
   flex-direction: row;
@@ -83,18 +83,20 @@
 }
 
 
-.audio-card__list-item {}
+.audio-card__detail {
+  display: list-item;
+}
 
-.audio-card__footer {
+.audio-card__status {
   margin-left: auto;
 }
 
-.audio-card__footer--analyzed {
+.audio-card__status--analyzed {
   color: var(--green)
 }
 
 
-.audio-card__footer--not-analyzed {
+.audio-card__status--not-analyzed {
   color: var(--purple);
 }
 

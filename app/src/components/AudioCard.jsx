@@ -1,7 +1,79 @@
-import { useMemo } from 'react'
 import './AudioCard.css'
-import { chordParserFactory, chordRendererFactory } from 'chord-symbol/lib/chord-symbol.js'
 
+export const AudioCard = ({ _id, youtubeId, title, thumbnail, edits, props, chordsPerBeats, children }) => {
+  return (
+    <article className='audio-card' {...props}>
+      {children}
+    </article>
+  )
+}
+
+AudioCard.Thumbnail = ({ src, props }) => {
+  return (
+    <picture className='audio-card__thumbnail' {...props}>
+      <img src={src} className='audio-card__img' />
+    </picture>
+  )
+}
+
+AudioCard.Content = ({ props, children }) => {
+  return (
+    <div className='audio-card__content'>
+      {children}
+    </div>
+  )
+}
+
+AudioCard.Title = ({ props, children }) => {
+  return (
+    <h1 className='audio-card__title'>{children}</h1>
+  )
+}
+
+AudioCard.Body = ({ props, children }) => {
+  return (
+    <div className='audio-card__body'>
+      {children}
+    </div>
+  )
+}
+
+AudioCard.Details = ({ props, children }) => {
+  return (
+    <ul className='audio-card__details'>
+      {children}
+    </ul>
+  )
+}
+
+AudioCard.Detail = ({ props, children }) => {
+  return (
+    <li className='audio-card__detail'>
+      {children}
+    </li>
+  )
+}
+
+AudioCard.Status = ({ props, isAnalyzed }) => {
+  const statusText = isAnalyzed ? 'analyzed' : 'not analyzed'
+  const statusClass = isAnalyzed ? 'audio-card__status--analyzed' : 'audio-card__status--not-analyzed'
+  return (
+    <footer className={`audio-card__status ${statusClass}`}>
+      {statusText}
+    </footer>
+  )
+}
+
+AudioCard.Button = ({ props, children }) => {
+  return (
+    <button type='submit' className='audio-card__analyze-button'>
+      {children}
+    </button>
+  )
+}
+//
+
+// import { chordParserFactory, chordRendererFactory } from 'chord-symbol/lib/chord-symbol.js'
 // const CHORDS_PARSER_OPTIONS = {
 //   useShortNamings: true,
 //   simplify: 'none', // none | max | core,
@@ -18,46 +90,3 @@ import { chordParserFactory, chordRendererFactory } from 'chord-symbol/lib/chord
 //   const chordsParsed = parseChord(chord)
 //   return renderChord(chordsParsed)
 // })
-
-export const AudioCard = ({ _id, youtubeId, title, thumbnail, edits, props, chordsPerBeats }) => {
-  const isAnalyzed = _id !== undefined
-  const statusText = isAnalyzed ? 'analyzed' : 'not analyzed'
-  const statusClass = isAnalyzed ? 'audio-card__footer--analyzed' : 'audio-card__footer--not-analyzed'
-  return (
-    <article className='audio-card' {...props}>
-      <figure className='audio-card__figure'>
-        <img src={thumbnail} className='audio-card__img' />
-      </figure>
-      <div className='audio-card__info'>
-        <h1 className='audio-card__title'>{title}</h1>
-        <div className='audio-card__details'>
-          {
-          isAnalyzed
-            ? (
-              <>
-                <ul className='audio-card__list'>
-                  <li className='audio-card__list-item'>
-                    {33} visits
-                  </li>
-                  <li className='audio-card__list-item'>
-                    {edits} edits
-                  </li>
-                </ul>
-              </>
-              )
-
-            : (
-              <button type='submit' className='audio-card__analyze-button'>
-                Analyze now
-              </button>
-              )
-          }
-          <footer className={`audio-card__footer ${statusClass}`}>
-            {statusText}
-          </footer>
-        </div>
-
-      </div>
-    </article>
-  )
-}

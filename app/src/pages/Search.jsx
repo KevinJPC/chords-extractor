@@ -1,11 +1,11 @@
 import './Search.css'
 import { useEffect, useState } from 'react'
 import { getAllAudioAnalysesByYoutubeSearch } from '../services/audioAnalyses'
-import { useRoute } from '../hooks/wouterWrapper'
+import { getQueryParams, useRoute } from '../hooks/wouterWrapper'
 import { AudioCard } from '../components/AudioCard'
 
 export const Search = () => {
-  const [match, { q: search }] = useRoute('/search')
+  const { q } = getQueryParams()
 
   const [data, setData] = useState(null)
 
@@ -20,7 +20,7 @@ export const Search = () => {
   }
 
   useEffect(() => {
-    fetchAllAudioAnalysisByYoutubeSearch({ searchQuery: search })
+    fetchAllAudioAnalysisByYoutubeSearch({ searchQuery: q })
   }, [])
 
   // const handleClick = async () => {
@@ -31,28 +31,38 @@ export const Search = () => {
   // }
 
   return (
-    <div className='container'>
-      <ul className='list'>
-        {
-      data?.results.map(({ _id, youtubeId, title, thumbnails, edits, chordsPerBeats }) =>
-        <li key={youtubeId}>
-          <AudioCard
-            _id={_id}
-            title={title}
-            youtubeId={youtubeId}
-            thumbnail={thumbnails[0].url}
-            edits={edits}
-            chordsPerBeats={chordsPerBeats}
-          />
-        </li>
-      )
-    }
-      </ul>
+    <section className='container'>
+      {data?.results.length > 0 &&
+        <ul className='list'>
+          {data?.results.map(({ _id, youtubeId, title, thumbnails, edits, chordsPerBeats }) => {
+            const isAnalyzed = _id !== undefined
+            return (
+              <li key={youtubeId}>
+                <AudioCard>
+                  <AudioCard.Thumbnail src={thumbnails[0].url} />
+                  <AudioCard.Content>
+                    <AudioCard.Title>
+                      {title}
+                    </AudioCard.Title>
+                    <AudioCard.Body>
+                      {!isAnalyzed && <AudioCard.Button>Analyze now</AudioCard.Button>}
+                      {isAnalyzed && (
+                        <AudioCard.Details>
+                          <AudioCard.Detail>{edits} edits</AudioCard.Detail>
+                          <AudioCard.Detail>{33} visits</AudioCard.Detail>
+                        </AudioCard.Details>
+                      )}
+                      <AudioCard.Status isAnalyzed={isAnalyzed} />
+                    </AudioCard.Body>
+                  </AudioCard.Content>
+                </AudioCard>
+              </li>
+            )
+          }
 
-      {
-      data?.continuation &&
-        <button onClick={() => {}}>Load more</button>
-    }
-    </div>
+          )}
+        </ul>}
+
+    </section>
   )
 }

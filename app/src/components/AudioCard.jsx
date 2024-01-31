@@ -1,6 +1,7 @@
 import './AudioCard.css'
+import { Children } from 'react'
 
-export const AudioCard = ({ _id, youtubeId, title, thumbnail, edits, props, chordsPerBeats, children }) => {
+export const AudioCard = ({ children, ...props }) => {
   return (
     <article className='audio-card' {...props}>
       {children}
@@ -8,65 +9,76 @@ export const AudioCard = ({ _id, youtubeId, title, thumbnail, edits, props, chor
   )
 }
 
-AudioCard.Thumbnail = ({ src, props }) => {
+AudioCard.Thumbnail = ({ children, ...props }) => {
   return (
     <picture className='audio-card__thumbnail' {...props}>
-      <img src={src} className='audio-card__img' />
+      {children}
     </picture>
   )
 }
 
-AudioCard.Content = ({ props, children }) => {
+AudioCard.ThumbnailImg = ({ src, props }) => {
   return (
-    <div className='audio-card__content'>
+    <img src={src} className='audio-card__img' />
+  )
+}
+
+AudioCard.Content = ({ children, ...props }) => {
+  return (
+    <div className='audio-card__content' {...props}>
       {children}
     </div>
   )
 }
 
-AudioCard.Title = ({ props, children }) => {
+AudioCard.Title = ({ children, ...props }) => {
   return (
     <h1 className='audio-card__title'>{children}</h1>
   )
 }
 
-AudioCard.Body = ({ props, children }) => {
+AudioCard.Body = ({ children, ...props }) => {
   return (
-    <div className='audio-card__body'>
+    <div className='audio-card__body' {...props}>
       {children}
     </div>
   )
 }
 
-AudioCard.Details = ({ props, children }) => {
+AudioCard.DetailsList = ({ children, ...props }) => {
   return (
-    <ul className='audio-card__details'>
-      {children}
+    <ul className='audio-card__details' {...props}>
+      {
+        Children.toArray(children).map((child, index) =>
+          <li key={index} className='audio-card__detail'>
+            {child}
+          </li>)
+      }
     </ul>
   )
 }
 
-AudioCard.Detail = ({ props, children }) => {
+AudioCard.DetailsItem = ({ children }) => {
   return (
-    <li className='audio-card__detail'>
+    <>
       {children}
-    </li>
+    </>
   )
 }
 
-AudioCard.Status = ({ props, isAnalyzed }) => {
+AudioCard.Status = ({ isAnalyzed, ...props }) => {
   const statusText = isAnalyzed ? 'analyzed' : 'not analyzed'
   const statusClass = isAnalyzed ? 'audio-card__status--analyzed' : 'audio-card__status--not-analyzed'
   return (
-    <footer className={`audio-card__status ${statusClass}`}>
+    <footer className={`audio-card__status ${statusClass}`} {...props}>
       {statusText}
     </footer>
   )
 }
 
-AudioCard.Button = ({ props, children }) => {
+AudioCard.Button = ({ children, ...props }) => {
   return (
-    <button type='submit' className='audio-card__analyze-button'>
+    <button type='submit' className='audio-card__analyze-button' {...props}>
       {children}
     </button>
   )

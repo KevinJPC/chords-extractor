@@ -8,7 +8,7 @@ export const Home = () => {
     <>
       <Background />
 
-      <section className='container container--small landing'>
+      <main className='container container--small landing'>
         <h1 className='landing__title'>
           C<span className='landing__accent'>#</span>ords extrator
         </h1>
@@ -21,7 +21,7 @@ export const Home = () => {
 
         <SearchInput className='lading__search' />
 
-      </section>
+      </main>
     </>
   )
 }

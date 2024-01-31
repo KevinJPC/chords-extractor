@@ -24,7 +24,7 @@ export const getAudioAnalysisById = async ({ id }) => {
 
 export const getAllAudioAnalysesByYoutubeSearch = async ({ searchQuery, continuation }) => {
   let endpoint = `${API_URL}/audio-analyses?source=youtube&searchQuery=${searchQuery}`
-  if (continuation) endpoint = endpoint.concat(`&continuation=${continuation}`)
+  if (continuation !== undefined) endpoint = endpoint.concat(`&continuation=${continuation}`)
   const res = await fetch(endpoint)
   const { data } = await res.json()
   const mappedResults = data.results.map((audioAnalysis) => ({

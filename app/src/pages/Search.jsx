@@ -3,6 +3,7 @@ import { getAllAudioAnalysesByYoutubeSearch } from '../services/audioAnalyses'
 import { useQueryParams } from '../hooks/useQueryParams'
 import { SearchListResults, SearchListResultsSkeleton } from '../components/SearchListResults'
 import { useInfiniteQuery } from '@tanstack/react-query'
+import { InfinityScroll } from '../components/InfiniteScroll'
 
 export const Search = () => {
   const [{ q }] = useQueryParams()
@@ -28,10 +29,18 @@ export const Search = () => {
   return (
     <>
       <main className='container'>
-        {mappedResults && <SearchListResults results={mappedResults} />}
-        {isLoading && <SearchListResultsSkeleton />}
-        {isFetchingNextPage && <SearchListResultsSkeleton count={2} />}
-        {hasNextPage && <button onClick={fetchNextPage}>Next page</button>}
+        <div className='results-container'>
+          {mappedResults?.length > 0 ? <SearchListResults results={mappedResults} /> : null}
+          {isLoading ? <SearchListResultsSkeleton count={10} /> : null}
+          {hasNextPage
+            ? (
+              <InfinityScroll isLoading={isLoading || isFetchingNextPage} onIntersect={fetchNextPage}>
+                <SearchListResultsSkeleton count={2} />
+              </InfinityScroll>
+              )
+            : null}
+
+        </div>
       </main>
     </>
   )

@@ -1,0 +1,12 @@
+{
+  "standard.autoFixOnSave": true,
+  "peacock.color": "#099600",
+  "workbench.colorCustomizations": {
+    "statusBar.background": "#099600",
+    "statusBar.foreground": "#e7e7e7",
+    "statusBarItem.hoverBackground": "#0cc900",
+    "statusBarItem.remoteBackground": "#099600",
+    "statusBarItem.remoteForeground": "#e7e7e7",
+    "tab.activeBorder": "#0cc900"
+  }
+}

@@ -1,9 +1,13 @@
+import { createAudioAnalysis } from '../services/audioAnalyses'
 import { AudioCard } from './AudioCard'
 import './SearchListResults.css'
 import Skeleton, { SkeletonTheme } from 'react-loading-skeleton'
 import 'react-loading-skeleton/dist/skeleton.css'
 
 export const SearchListResults = ({ results, ...props }) => {
+  const handleOnClick = ({ youtubeId }) => {
+    createAudioAnalysis({ youtubeId })
+  }
   return (
     <ul className='search-list-results' {...props}>
       {results.map(({ _id, youtubeId, title, thumbnails, edits, chordsPerBeats }) => {
@@ -25,7 +29,7 @@ export const SearchListResults = ({ results, ...props }) => {
                       </AudioCard.DetailsList>
                       )
                     : (
-                      <AudioCard.Button>Analyze now</AudioCard.Button>
+                      <AudioCard.Button onClick={() => handleOnClick({ youtubeId })}>Analyze now</AudioCard.Button>
                       )}
                   <AudioCard.Status isAnalyzed={isAnalyzed} />
                 </AudioCard.Body>

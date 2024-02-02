@@ -9,3 +9,4 @@ audio-analysis-py/src/__pycache__
 api/temp
 
 # App
+app/dist

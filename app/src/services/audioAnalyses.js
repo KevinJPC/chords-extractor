@@ -39,3 +39,21 @@ export const getAllAudioAnalysesByYoutubeSearch = async ({ searchQuery, continua
   }))
   return { results: mappedResults, continuation: data.continuation }
 }
+
+export const createAudioAnalysis = async ({ youtubeId }) => {
+  const endpoint = `${API_URL}/audio-analyses`
+  const data = { youtubeId }
+  const response = await fetch(endpoint, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(data)
+  })
+  const reader = response.body.pipeThrough(new TextDecoderStream()).getReader()
+  while (true) {
+    const { value, done } = await reader.read()
+    if (done) break
+    console.log('Received', value)
+  }
+}

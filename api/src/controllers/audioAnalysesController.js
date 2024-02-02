@@ -21,8 +21,10 @@ export const getAudioAnalysis = tryCatch(async (req, res) => {
 )
 export const createAudioAnalysis = tryCatch(async (req, res) => {
   res.writeHead(200, sseHeaders)
-
   const { youtubeId } = req.body
+
+  if (youtubeId === undefined) throw new Error('Youtube id was not provided')
+
   const audioAnalysis = await AudioAnalysis.findOriginalByYoutubeId({ youtubeId })
   if (audioAnalysis) throw new AppError(AUDIO_ALREADY_ANALYZED, 'Audio already analyzed.', 409)
 

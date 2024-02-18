@@ -1,6 +1,8 @@
+import { AUDIO_ANALYSIS_STATUS } from '../constants/audioAnalysesStatus.js'
 import { AUDIO_ALREADY_ANALYZED, AUDIO_ANALYSIS_NOT_FOUND } from '../constants/errorCodes.js'
+import { errorHandler } from '../middlewares/errorHandler.js'
 import AudioAnalysis from '../models/AudioAnalysis.js'
-import { analyzeAudio } from '../services/audioAnalysisService.js'
+import { audioAnalysisJobService } from '../services/audioAnalysisJobService.js'
 import { YoutubeList } from '../services/youtubeService.js'
 import AppError from '../utils/AppError.js'
 import { sseHeaders, writeSseResponse } from '../utils/sse.js'
@@ -19,8 +21,10 @@ export const getAudioAnalysis = tryCatch(async (req, res) => {
   })
 }
 )
+
 export const createAudioAnalysis = tryCatch(async (req, res) => {
   res.writeHead(200, sseHeaders)
+
   const { youtubeId } = req.body
 
   if (youtubeId === undefined) throw new Error('Youtube id was not provided')
@@ -28,13 +32,21 @@ export const createAudioAnalysis = tryCatch(async (req, res) => {
   const audioAnalysis = await AudioAnalysis.findOriginalByYoutubeId({ youtubeId })
   if (audioAnalysis) throw new AppError(AUDIO_ALREADY_ANALYZED, 'Audio already analyzed.', 409)
 
-  const newAudioAnalysis = await analyzeAudio({ youtubeId })
+  const audioAnalysisJobObservable = await audioAnalysisJobService.analyze(youtubeId)
 
-  const response = {
-    data: { ...newAudioAnalysis }
+  const observerHandlers = {
+    onNotify: ({ status }) => {
+      writeSseResponse(res, { event: 'status', data: { status } })
+      if (status === AUDIO_ANALYSIS_STATUS.success) return res.end()
+    },
+    onError: ({ error }) => errorHandler(error, req, res)
   }
-  writeSseResponse(res, { event: 'success', data: response })
-  res.end()
+
+  audioAnalysisJobObservable.subscribe(observerHandlers)
+
+  req.on('close', () => {
+    audioAnalysisJobObservable.unsubscribe(observerHandlers)
+  })
 })
 
 export const getAllOriginalsAudioAnalysesBySource = (req, res, next) => {
@@ -69,7 +81,7 @@ export const getAllOriginalsAudioAnalysesByYoutubeSearch = tryCatch(async (req, 
 })
 
 export const getAllAudioAnalyses = tryCatch(async (req, res) => {
-  const { page } = req.body
+  // const { page } = req.body
 
   res.status(501).json({
     status: 'fail',

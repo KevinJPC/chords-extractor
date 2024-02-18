@@ -7,8 +7,8 @@ const DATA_EVENTS = {
   RESULT: 'result'
 }
 
-export const spawnPython = ({ venvPythonScript, filePath, args = [] }) => {
-  const spawnProcess = spawn(`${venvPythonScript}`, [filePath, ...args])
+export const spawnPython = ({ pythonCmd, filePath, args = [] }) => {
+  const spawnProcess = spawn(`${pythonCmd}`, [filePath, ...args])
 
   const lineReader = readLine.createInterface({ input: spawnProcess.stdout })
 

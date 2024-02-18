@@ -14,7 +14,6 @@ async function main () {
   app.use(cors())
   app.use(express.json())
 
-  // app.use(morgan('dev'))
   morgan.token('body', (req) => JSON.stringify(req.body))
   app.use(morgan(':method :url :body'))
 

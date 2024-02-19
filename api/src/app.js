@@ -25,5 +25,4 @@ async function main () {
     console.log(`Server running on port http://localhost:${port}`)
   })
 }
-
 main()

@@ -1,111 +1,117 @@
-import { Worker } from 'bullmq'
-import { AUDIO_ANALYSIS_STATUS, AUDIO_ANALYSIS_STATUS_BY_JOB_STATES, BULLMQ_JOB_STATES } from '../constants/audioAnalysesStatus'
-import { ObservableAudioAnalysisJob } from '../observables/ObservableAudioAnalysisJob'
-import { audioAnalysesQueue } from '../queues/audioAnalysesQueue'
-import { analyzeAudioProcessor } from '../processors/analyzeAudioProcessor'
-import redisConfig from '../config/redis'
-import AppError from '../utils/AppError'
-import { YoutubeVideoDetails } from './youtubeService'
+import { AUDIO_ANALYSIS_STATUS, AUDIO_ANALYSIS_STATUS_BY_JOB_STATES, BULLMQ_JOB_STATES } from '../constants/audioAnalysesStatus.js'
+import { YOUTUBE_VIDEO_NOT_FOUND } from '../constants/errorCodes.js'
+import { NOT_FOUND } from '../constants/httpCodes.js'
+import { createAudioAnalysisJob, findAudioAnalysisJob, getJobState } from '../queues/audioAnalysesQueue.js'
+import AppError from '../utils/AppError.js'
+import { YoutubeVideoDetails } from './youtubeService.js'
 
 class AudioAnalysisJobService {
   #observables
-  #worker
   constructor () {
-    this.#worker = new Worker(
-      audioAnalysesQueue.name,
-      analyzeAudioProcessor, {
-        connection: { ...redisConfig },
-        removeOnComplete: true,
-        removeOnFail: true,
-        concurrency: 1
-      }
-    )
-    this.#setupListeners()
+    this.#observables = {}
   }
 
-  #setupListeners () {
-    this.#worker.on('progress', (job, jobProgress) => {
-      console.log('job: ', job.id, ' progress: ', jobProgress)
-    })
-
-    this.#worker.on('active', (job) => {
-      console.log('active: notifing clients ', job.id)
-      const jobObservable = this.#findJobObservable({ jobId: job.id })
-      jobObservable?.notify({ status: this.#getJobStatusByState(BULLMQ_JOB_STATES.active) })
-    })
-
-    this.#worker.on('completed', (job, result) => {
-      console.log('job: ', job.id, ' completed: ')
-      const jobObservable = this.#findJobObservable({ jobId: job.id })
-      jobObservable?.notify({ status: this.#getJobStatusByState(BULLMQ_JOB_STATES.completed), result })
-      this.#deleteJobObservable({ jobId: job.id })
-    })
-
-    this.#worker.on('failed', (job, error) => {
-      console.log('job: ', job.id, ' failed: ')
-      const jobObservable = this.#findJobObservable({ jobId: job.id })
-      jobObservable?.error(error)
-      this.#deleteJobObservable({ jobId: job.id })
-    })
-
-    this.#worker.on('error', (failedReason) => {
-      Object.entries(this.observablesJob).forEach(([jobId, jobObservable]) => {
-        jobObservable.error(new Error(failedReason))
-        this.#deleteJobObservable({ jobId })
-      })
-    })
+  #findAllJobObservables () {
+    return Object.entries(this.#observables)
   }
 
-  async #findJob (jobId) {
-    const job = await audioAnalysesQueue.getJob(jobId)
-    return job
+  #findJobObservable ({ id }) {
+    return this.#observables[id]
   }
 
-  async #createJob (jobId) {
-    const job = await audioAnalysesQueue.add('audioAnalysis', {
-      youtubeId: jobId
-    }, {
-      jobId,
-      removeOnComplete: true,
-      removeOnFail: true
-    })
-    return job
+  #createJobObservable ({ id, status }) {
+    const observable = this.#observables[id] = new ObservableAudioAnalysisJob({ id, state: { status } })
+    return observable
   }
 
-  #getJobStatusByState (jobState) {
-    const jobStatus = AUDIO_ANALYSIS_STATUS_BY_JOB_STATES[jobState] || AUDIO_ANALYSIS_STATUS.error
+  #deleteJobObservable ({ id }) {
+    delete this.#observables[id]
+  }
+
+  #getJobStatusByState = ({ state }) => {
+    const jobStatus = AUDIO_ANALYSIS_STATUS_BY_JOB_STATES[state] || AUDIO_ANALYSIS_STATUS.error
     return jobStatus
   }
 
-  #findJobObservable (jobId) {
-    return this.#observables[jobId]
+  onActive ({ observableId }) {
+    const jobObservable = this.#findJobObservable({ id: observableId })
+    jobObservable?.notify({ status: this.#getJobStatusByState({ state: BULLMQ_JOB_STATES.active }) })
   }
 
-  #createJobObservable ({ jobId, status }) {
-    const observable = this.#observables[jobId] = new ObservableAudioAnalysisJob({ jobId, state: { status } })
-    return observable
+  onComplete ({ observableId, result }) {
+    const jobObservable = this.#findJobObservable({ id: observableId })
+    jobObservable?.notify({ status: this.#getJobStatusByState({ state: BULLMQ_JOB_STATES.completed }), result })
+    this.#deleteJobObservable({ id: observableId })
   }
 
-  #deleteJobObservable (jobId) {
-    delete this.#observables[jobId]
+  onFailed ({ observableId, error }) {
+    const jobObservable = this.#findJobObservable({ id: observableId })
+    jobObservable?.error(error)
+    this.#deleteJobObservable({ id: observableId })
   }
 
-  async analyze (youtubeId) {
-    let job = this.#findJob(youtubeId)
+  onError ({ failedReason }) {
+    const jobObservables = this.#findAllJobObservables()
+    for (const [id, jobObservable] of jobObservables) {
+      jobObservable.error(new Error(failedReason))
+      this.#deleteJobObservable({ id })
+    }
+  }
+
+  async analyze ({ youtubeId }) {
+    let job = await findAudioAnalysisJob({ id: youtubeId })
     if (job === undefined) {
       const videoDetails = await YoutubeVideoDetails.search({ id: youtubeId })
-      if (videoDetails === undefined) throw new AppError(1, 'Youtube song not found', 404)
-      job = this.#createJob(youtubeId)
+      if (videoDetails === undefined) throw new AppError(YOUTUBE_VIDEO_NOT_FOUND, 'Youtube video not found', NOT_FOUND)
+      const { title, duration, thumbnails } = videoDetails
+      // TODO: validate song max duration
+      job = await createAudioAnalysisJob({ id: youtubeId, data: { youtubeId, title, duration, thumbnails } })
     }
 
-    let observable = this.#findJobObservable(job.id)
+    let observable = this.#findJobObservable({ id: job.id })
     if (observable === undefined) {
-      const jobState = await job.getState()
-      const status = this.#getJobStatusByState({ jobState })
-      observable = this.#createJobObservable({ jobId: job.id, status })
+      const state = await getJobState({ job })
+      const status = this.#getJobStatusByState({ state })
+      observable = this.#createJobObservable({ id: job.id, status })
     }
 
     return observable
+  }
+}
+
+export class ObservableAudioAnalysisJob {
+  #id
+  #observers
+  #state
+  constructor ({ id, state }) {
+    this.#id = id
+    this.#observers = []
+    this.#state = state
+  }
+
+  subscribe (observer) {
+    console.log(`new ${this.#id} job subscriber`)
+    observer.onNotify(this.#state) // notify current state to subscriber
+    this.#observers.push(observer)
+  }
+
+  unsubscribe (observer) {
+    console.log(`unsubscribed of ${this.#id} job`)
+
+    this.#observers = this.#observers.filter(observerHandlers => observerHandlers !== observer)
+  }
+
+  notify (newState) {
+    this.#state = { ...this.#state, ...newState }
+    for (const observer of this.#observers) {
+      observer.onNotify(this.#state)
+    }
+  }
+
+  error (error) {
+    for (const observer of this.#observers) {
+      observer.onError(error)
+    }
   }
 }
 

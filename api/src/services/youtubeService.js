@@ -51,7 +51,8 @@ export class YoutubeList {
         response = newSearch
       } else {
         response = await youtubeClient.search(searchQuery, {
-          type: 'video'
+          type: 'video',
+          duration: 'medium'
         })
       }
       return new YoutubeList({ results: response.items, continuation: response.continuation })

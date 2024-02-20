@@ -1,4 +1,5 @@
 {
+  "editor.formatOnSave": false,
   "standard.autoFixOnSave": true,
   "peacock.color": "#099600",
   "workbench.colorCustomizations": {

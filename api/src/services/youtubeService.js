@@ -16,8 +16,7 @@ export class YoutubeService {
         response = newSearch
       } else {
         response = await this.#client.search(query, {
-          type: 'video',
-          duration: 'medium'
+          type: 'video'
         })
       }
       return { results: response.items, continuation: response.continuation }

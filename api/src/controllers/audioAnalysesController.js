@@ -4,7 +4,7 @@ import { CONFLICT, NOT_FOUND, OK } from '../constants/httpCodes.js'
 import { errorHandler } from '../middlewares/errorHandler.js'
 import AudioAnalysis from '../models/AudioAnalysis.js'
 import { audioAnalysisJobService } from '../services/audioAnalysisJobService.js'
-import { YoutubeList } from '../services/youtubeService.js'
+import { youtubeService } from '../services/youtubeService.js'
 import AppError from '../utils/AppError.js'
 import { sseHeaders, writeSseResponse } from '../utils/sse.js'
 import { tryCatch } from '../utils/tryCatch.js'
@@ -66,16 +66,22 @@ export const getAllOriginalsAudioAnalysesBySource = (req, res, next) => {
 export const getAllOriginalsAudioAnalysesByYoutubeSearch = tryCatch(async (req, res) => {
   const { searchQuery, continuation } = req.query
 
-  const youtubeService = await YoutubeList.search({ searchQuery, continuation })
-  const resultsIds = youtubeService.getResultsIds()
-  const resultsAlreadyAnalyzed = await AudioAnalysis.findAllOriginalsByYoutubeIds({ youtubeIds: resultsIds })
-  youtubeService.mappedResultsBaseOnAnalyzed({ resultsAlreadyAnalyzed })
+  const { results, continuation: nextContinuation } = await youtubeService.search({ query: searchQuery, continuation })
 
-  res.status(200).json({
+  const resultsIds = results.map(result => result.id)
+
+  const resultsAlreadyAnalyzed = await AudioAnalysis.findAllOriginalsByYoutubeIds({ youtubeIds: resultsIds })
+
+  const mappedResults = results.map(({ id: youtubeId, title, thumbnails, duration }) => {
+    const audioAnalysis = resultsAlreadyAnalyzed.find(audioAnalysis => audioAnalysis.youtubeId === youtubeId)
+    return { youtubeId, title, thumbnails, duration, ...audioAnalysis }
+  })
+
+  res.status(OK).json({
     status: 'success',
     data: {
-      results: youtubeService.results,
-      continuation: youtubeService.continuation
+      results: mappedResults,
+      continuation: nextContinuation
     }
   })
 })

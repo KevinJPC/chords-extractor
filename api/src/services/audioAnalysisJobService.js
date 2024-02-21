@@ -3,7 +3,7 @@ import { YOUTUBE_VIDEO_NOT_FOUND } from '../constants/errorCodes.js'
 import { NOT_FOUND } from '../constants/httpCodes.js'
 import { createAudioAnalysisJob, findAudioAnalysisJob, getJobState } from '../queues/audioAnalysesQueue.js'
 import AppError from '../utils/AppError.js'
-import { YoutubeVideoDetails } from './youtubeService.js'
+import { youtubeService } from './youtubeService.js'
 
 class AudioAnalysisJobService {
   #observables
@@ -61,9 +61,9 @@ class AudioAnalysisJobService {
   async analyze ({ youtubeId }) {
     let job = await findAudioAnalysisJob({ id: youtubeId })
     if (job === undefined) {
-      const videoDetails = await YoutubeVideoDetails.search({ id: youtubeId })
-      if (videoDetails === undefined) throw new AppError(YOUTUBE_VIDEO_NOT_FOUND, 'Youtube video not found', NOT_FOUND)
-      const { title, duration, thumbnails } = videoDetails
+      const video = await youtubeService.findVideo({ id: youtubeId })
+      if (video === undefined) throw new AppError(YOUTUBE_VIDEO_NOT_FOUND, 'Youtube video not found', NOT_FOUND)
+      const { title, duration, thumbnails } = video
       // TODO: validate song max duration
       job = await createAudioAnalysisJob({ id: youtubeId, data: { youtubeId, title, duration, thumbnails } })
     }

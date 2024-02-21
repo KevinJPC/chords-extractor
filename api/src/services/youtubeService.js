@@ -1,85 +1,44 @@
-// import youtubeSearchApi from 'youtube-search-api'
 import { Client, SearchResult } from 'youtubei'
-// import AudioAnalysis from '../models/AudioAnalysis.js'
-const youtubeClient = new Client()
-export class YoutubeList {
-  results
-  continuation
-  constructor ({ results, continuation }) {
-    this.results = results
-    this.continuation = continuation
+
+export class YoutubeService {
+  #client
+  constructor () {
+    this.#client = new Client()
   }
 
-  getResultsIds () {
-    return this.results.map(item => item.id)
-  }
-
-  async mappedResultsBaseOnAnalyzed ({ resultsAlreadyAnalyzed }) {
-    this.results = this.results.map(
-      (videoCompact) => {
-        const audioAnalysis = resultsAlreadyAnalyzed.find(({ youtubeId }) => youtubeId === videoCompact.id)
-
-        if (audioAnalysis !== undefined) {
-          return {
-            _id: audioAnalysis._id,
-            title: audioAnalysis.title,
-            youtubeId: audioAnalysis.youtubeId,
-            thumbnails: audioAnalysis.thumbnails,
-            duration: audioAnalysis.duration,
-            bpm: audioAnalysis.bpm,
-            chordsPerBeats: audioAnalysis.chordsPerBeats,
-            edits: audioAnalysis.edits
-          }
-        }
-
-        return {
-          youtubeId: videoCompact.id,
-          title: videoCompact.title,
-          thumbnails: videoCompact.thumbnails,
-          duration: videoCompact.duration
-        }
-      })
-  }
-
-  static async search ({ searchQuery, continuation }) {
+  async search ({ query, continuation }) {
     try {
       let response
       if (continuation) {
-        const newSearch = new SearchResult({ client: youtubeClient })
+        const newSearch = new SearchResult({ client: this.#client })
         newSearch.continuation = continuation
         await newSearch.next()
         response = newSearch
       } else {
-        response = await youtubeClient.search(searchQuery, {
+        response = await this.#client.search(query, {
           type: 'video',
           duration: 'medium'
         })
       }
-      return new YoutubeList({ results: response.items, continuation: response.continuation })
+      return { results: response.items, continuation: response.continuation }
     } catch (error) {
       console.error(error)
       throw error
     }
   }
-}
 
-export class YoutubeVideoDetails {
-  id
-  title
-  channelTitle
-  thumbnails
-  duration
-  constructor ({ id, title, channelTitle, thumbnails, duration }) {
-    this.id = id
-    this.title = title
-    this.channelTitle = channelTitle
-    this.thumbnails = thumbnails
-    this.duration = duration
-  }
+  async findVideo ({ id }) {
+    const video = await this.#client.getVideo(id)
 
-  static async search ({ id }) {
-    const videoCompact = await youtubeClient.getVideo(id)
-
-    return new YoutubeVideoDetails({ id: videoCompact, title: videoCompact.title, thumbnails: videoCompact.thumbnails, duration: videoCompact.duration })
+    return video !== undefined
+      ? ({
+          id: video.id,
+          title: video.title,
+          thumbnails: video.thumbnails,
+          duration: video.duration
+        })
+      : undefined
   }
 }
+
+export const youtubeService = new YoutubeService()

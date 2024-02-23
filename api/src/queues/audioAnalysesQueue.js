@@ -1,8 +1,7 @@
-import { Queue, Worker } from 'bullmq'
+import { Queue, QueueEvents, Worker } from 'bullmq'
 import redisConfig from '../config/redis.js'
 import Redis from 'ioredis'
 import { analyzeAudioProcessor } from '../processors/analyzeAudioProcessor.js'
-import { audioAnalysisJobService } from '../services/audioAnalysisJobService.js'
 
 const redisClient = new Redis({
   ...redisConfig,
@@ -16,13 +15,28 @@ export const AUDIO_ANALYSIS_QUEUE_NAME = 'audio-analyses'
 
 const audioAnalysesQueue = new Queue(
   AUDIO_ANALYSIS_QUEUE_NAME, {
-    connection: redisClient
-  })
+    connection: redisClient,
+    defaultJobOptions: {
+      // removeOnComplete: true,
+      // removeOnFail: true
+      // delay: 1000,
+    }
+  }
+)
+
+await audioAnalysesQueue.clean(true)
 
 export const findAudioAnalysisJob = async ({ id }) => {
   await redisClient.ping() // suggested workaround temporary for issue: https://github.com/taskforcesh/bullmq/issues/995
   const job = await audioAnalysesQueue.getJob(id)
-  return job
+  return job !== undefined
+    ? {
+        // status: job.progress?.status || AUDIO_ANALYSIS_STATUS.waiting,
+        progress: job.progress?.progress ?? null,
+        result: job.returnvalue,
+        failedReason: job.failedReason
+      }
+    : undefined
 }
 
 export const createAudioAnalysisJob = async ({
@@ -40,16 +54,19 @@ export const createAudioAnalysisJob = async ({
     duration,
     thumbnails
   }, {
-    jobId: id,
-    removeOnComplete: true,
-    removeOnFail: true
+    jobId: id
   })
-  return job
+
+  return {
+    // status: job.progress?.status || AUDIO_ANALYSIS_STATUS.waiting,
+    progress: job.progress?.progress ?? null,
+    result: job.returnvalue,
+    failedReason: job.failedReason
+  }
 }
 
-export const getJobState = async ({ job }) => {
-  const state = await job.getState()
-  return state
+export const updateAudioAnalysisJobProgress = async (job, { progress }) => {
+  await job.updateProgress({ progress })
 }
 
 // Worker
@@ -58,34 +75,36 @@ const audioAnalysesWorker = new Worker(
   AUDIO_ANALYSIS_QUEUE_NAME,
   analyzeAudioProcessor, {
     connection: { ...redisConfig },
-    removeOnComplete: true,
-    removeOnFail: true,
     concurrency: 1
   }
 )
 
-// Worker listeners
-
-audioAnalysesWorker.on('progress', (job, jobProgress) => {
-  console.log('job: ', job.id, ' progress: ', jobProgress)
+const audioAnalysesQueueEvents = new QueueEvents(AUDIO_ANALYSIS_QUEUE_NAME, {
+  connection: {
+    ...redisConfig
+  }
+})
+// listeners
+audioAnalysesQueueEvents.on('progress', ({ jobId, data }) => {
+  console.log('job progress: ', jobId, ' progress: ', data)
 })
 
-audioAnalysesWorker.on('active', (job) => {
-  console.log('active: notifing clients ', job.id)
-  audioAnalysisJobService.onActive({ observableId: job.id })
+audioAnalysesQueueEvents.on('waiting', ({ jobId }) => {
+  console.log('job waiting:', jobId)
 })
 
-audioAnalysesWorker.on('completed', (job, result) => {
-  console.log('job: ', job.id, ' completed: ')
-  audioAnalysisJobService.onComplete({ observableId: job.id, result })
+audioAnalysesQueueEvents.on('active', ({ jobId }) => {
+  console.log('job active: ', jobId)
 })
 
-audioAnalysesWorker.on('failed', (job, error) => {
-  console.log('job: ', job.id, ' failed: ', error)
-  audioAnalysisJobService.onFailed({ observableId: job.id, error })
+audioAnalysesQueueEvents.on('completed', ({ jobId, returnvalue }) => {
+  console.log('job completed: ', jobId, ' audioAnalysis id:', returnvalue._id)
 })
 
-audioAnalysesWorker.on('error', (failedReason) => {
-  console.log('error: ', failedReason)
-  audioAnalysisJobService.onError({ failedReason })
+audioAnalysesQueueEvents.on('failed', ({ jobId, failedReason }) => {
+  console.log('job: ', failedReason, ' failed: ', failedReason)
+})
+
+audioAnalysesQueueEvents.on('error', ({ name, message, stack }) => {
+  console.log('error: ', name)
 })

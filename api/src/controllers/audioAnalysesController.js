@@ -32,21 +32,18 @@ export const createAudioAnalysis = tryCatch(async (req, res) => {
   const audioAnalysis = await AudioAnalysis.findOriginalByYoutubeId({ youtubeId })
   if (audioAnalysis) throw new AppError(AUDIO_ALREADY_ANALYZED, 'Audio already analyzed.', CONFLICT)
 
-  const audioAnalysisJobObservable = await audioAnalysisJobService.analyze({ youtubeId })
-
-  const observerHandlers = {
-    onNotify: ({ status, result = null }) => {
-      writeSseResponse(res, { event: 'status', data: { status, result } })
-      if (status === AUDIO_ANALYSIS_STATUS.success) return res.end()
-    },
-    onError: ({ error }) => errorHandler(error, req, res)
+  const onNotify = ({ status, progress, result }) => {
+    writeSseResponse(res, { event: 'notify', data: { status, progress, result } })
+    if (status === AUDIO_ANALYSIS_STATUS.success) return res.end()
   }
 
-  audioAnalysisJobObservable.subscribe(observerHandlers)
+  const onError = ({ error }) => errorHandler(error, req, res)
 
-  req.on('close', () => {
-    audioAnalysisJobObservable.unsubscribe(observerHandlers)
-  })
+  const { disconect } = await audioAnalysisJobService.analyze({ youtubeId, onNotify, onError })
+
+  // req.on('close', () => {
+  // audioAnalysisJobObservable.unsubscribe(observerHandlers)
+  // })
 })
 
 export const getAllOriginalsAudioAnalysesBySource = (req, res, next) => {

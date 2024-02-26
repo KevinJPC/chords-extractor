@@ -1,21 +1,31 @@
-from utils import set_vamp_path, get_audio_path_argv, print_response
-from analyze import analyze_audio
+from utils import set_vamp_path, get_youtube_id_argv, to_json
+from analyze import get_audio_data, recognize_bpm_and_beat_times, recognize_chords, map_beats, map_chords_per_beats, download_from_youtube
 from errors import Error 
+from constants import PROGRESS_STEPS, RESPONSE_EVENTS
 
 def main():
-    try: 
-        set_vamp_path()
+    set_vamp_path()
 
-        audio_path = get_audio_path_argv()
+    youtube_id = get_youtube_id_argv()
 
-        bpm, beats, chords_per_beats = analyze_audio(audio_path)
+    audio_buffer = download_from_youtube(youtube_id)
+    print(to_json({'event': RESPONSE_EVENTS['PROGRESS'], 'data': {'step': PROGRESS_STEPS['AUDIO_DATA_OBTAINING_FINISHED']}}))
 
-        print_response('result', {'bpm': bpm, 'beats': beats, 'chords_per_beats': chords_per_beats})
+    audio_data, sample_rate = get_audio_data(audio_buffer)
 
-    except Error as e:
-        print_response('error', {'message': e.args[0], 'code': e.code})
-    except Exception as e:
-        print_response('error', {'message': e.args[0]})
+    bpm, beat_times = recognize_bpm_and_beat_times(audio_data, sample_rate)
+    print(to_json({'event': RESPONSE_EVENTS['PROGRESS'], 'data': {'step': PROGRESS_STEPS['BPM_AND_BEAT_TIMES_RECOGNITION_FINISHED']}}))
+
+    chords = recognize_chords(audio_data, sample_rate)
+    print(to_json({'event': RESPONSE_EVENTS['PROGRESS'], 'data': {'step': PROGRESS_STEPS['CHORDS_RECOGNITION_FINISHED']}}))
+
+    beats = map_beats(beat_times)
+    print(to_json({'event': RESPONSE_EVENTS['PROGRESS'], 'data': {'step': PROGRESS_STEPS['BEATS_MAPPING_FINISHED']}}))
+
+    chords_per_beats = map_chords_per_beats(chords, beats)
+    print(to_json({'event': RESPONSE_EVENTS['PROGRESS'], 'data': {'step': PROGRESS_STEPS['CHORDS_PER_BEATS_MAPPING_FINISHED']}}))
+
+    print(to_json({'event': RESPONSE_EVENTS['SUCCESS'], 'data': {'bpm': bpm, 'beats': beats, 'chords_per_beats': chords_per_beats}}))
 
 if __name__ == '__main__':
     main()

@@ -1,6 +1,8 @@
+import io
 import librosa
 import vamp
-from utils import print_response
+import pytube
+import pydub
 
 CHORDINO_PARAMETERS = {
     'useNNLS': 1, # 0 or 1, default 1
@@ -10,24 +12,6 @@ CHORDINO_PARAMETERS = {
     's': .5, # 0.5 - 0.9, default 0.7
     'boostn': 0.1 # 0 - 1, default .1
 }
-
-def analyze_audio(audio_path):
-  print_response('progress', {'progress': 0})
-  
-  audio_data, sample_rate = get_audio_data(audio_path)
-  print_response('progress', {'progress': 10})
-
-  bpm, beat_times = recognize_bpm_and_beat_times(audio_data, sample_rate)
-  print_response('progress', {'progress': 50})
-
-  chords = recognize_chords(audio_data, sample_rate)
-  print_response('progress', {'progress': 90})
-  
-  beats = map_beats(beat_times)
-  chords_per_beats = map_chords_per_beats(chords, beats)
-  print_response('progress', {'progress': 100})
-
-  return bpm, beats, chords_per_beats
 
 def map_beats(beat_times):
   beats_mapped = []
@@ -55,12 +39,36 @@ def map_chords_per_beats(chords, beats):
     
   return chords_per_beats
 
-def get_audio_data(audio_path):
-  try:
-    audio_data, sample_rate = librosa.load(audio_path)
-    return audio_data, sample_rate
-  except FileNotFoundError:
-    raise AudioFileNotFoundError()
+def download_from_youtube(youtube_id):
+  youtube_video = pytube.YouTube.from_id(youtube_id)
+
+  # buffer to store the file in memory
+  audio_mp4 = io.BytesIO()
+
+  # filter the video streams, get one and move it to the buffer
+  youtube_video.streams.\
+    filter(only_audio=True, file_extension='mp4')\
+    .first()\
+    .stream_to_buffer(audio_mp4)
+
+  # convert audio from mp4 to wav for librosa to read it
+
+  audio_mp4.seek(0) # move the pointer at beginning of the "file like" object
+  
+  audio = pydub.AudioSegment.from_file(audio_mp4, format="mp4")
+  
+  audio_mp4.close()
+
+  audio_wav = io.BytesIO()
+  audio.export(audio_wav, format='wav')
+
+  audio_wav.seek(0) # move the pointer at beginning of the "file like" object
+
+  return audio_wav
+
+def get_audio_data(buffer):
+  audio_data, sample_rate = librosa.load(buffer)
+  return audio_data, sample_rate
 
 def recognize_chords(audio_data, sample_rate):
   chroma = vamp.collect(

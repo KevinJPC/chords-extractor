@@ -1,3 +1,5 @@
+import { SSE } from 'sse.js'
+
 const API_URL = 'http://localhost:3000/api'
 
 export const getAudioAnalysisById = async ({ id }) => {
@@ -40,20 +42,44 @@ export const getAllAudioAnalysesByYoutubeSearch = async ({ searchQuery, continua
   return { results: mappedResults, continuation: data.continuation }
 }
 
-export const createAudioAnalysis = async ({ youtubeId }) => {
+export const createAudioAnalysis = ({ youtubeId, onOpen, onError, onQueue, onProcess, onSuccess }) => {
   const endpoint = `${API_URL}/audio-analyses`
   const data = { youtubeId }
-  const response = await fetch(endpoint, {
+  const source = new SSE(endpoint, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json'
     },
-    body: JSON.stringify(data)
+    payload: JSON.stringify(data)
   })
-  const reader = response.body.pipeThrough(new TextDecoderStream()).getReader()
-  while (true) {
-    const { value, done } = await reader.read()
-    if (done) break
-    console.log('Received', value)
+
+  source.onopen = () => {
+    onOpen?.()
   }
+
+  source.onerror = () => {
+    onError?.()
+  }
+
+  source.onqueue = (e) => {
+    const data = JSON.parse(e.data)
+    onQueue?.(data)
+  }
+
+  source.onprocess = (e) => {
+    const data = JSON.parse(e.data)
+    onProcess?.(data)
+  }
+
+  source.onsuccess = (e) => {
+    closeSource()
+    const data = JSON.parse(e.data)
+    onSuccess?.(data)
+  }
+
+  const closeSource = () => {
+    source.close()
+  }
+
+  return { closeSource }
 }

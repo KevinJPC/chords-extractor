@@ -1,16 +1,11 @@
 class Error(Exception):
-  def __init__(self, message, code):
+  def __init__(self, message):
     super().__init__(message)
-    self.code = code
 
-class NotAudioPathArgvError(Error):
+class NotYouTubeIdArgvError(Error):
   def __init__(self):
-    super().__init__("Audio path not provided", 1)
-
-class AudioFileNotFoundError(Error):
-  def __init__(self):
-    super().__init__("Audio file not found", 2)
+    super().__init__("Youtube id not provided")
 
 class VampPathDoesNotExistsError(Error):
   def __init__(self, path):
-    super().__init__(f"Vamp path: {path} doesn't exist", 3)
+    super().__init__(f"Vamp path: {path} doesn't exist")

@@ -101,7 +101,7 @@
 }
 
 .audio-card__analyze-button {
-  max-width: 100px;
+  min-width: 100px;
   padding: .5rem 1rem;
   border-radius: 5px;
   border: none;

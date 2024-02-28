@@ -23,3 +23,6 @@ def get_youtube_id_argv():
     return youtube_id
   except IndexError:
     raise NotYouTubeIdArgvError()
+
+def print_json(data):
+  print(to_json(data), flush = True)

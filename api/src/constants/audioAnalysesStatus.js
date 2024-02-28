@@ -1,7 +1,7 @@
 export const AUDIO_ANALYSIS_STATUS = {
   waiting: 'waiting',
   error: 'error',
-  success: 'success',
+  completed: 'completed',
   processing: 'processing'
 }
 
@@ -22,5 +22,5 @@ export const AUDIO_ANALYSIS_STATUS_BY_JOB_STATES = {
   [BULLMQ_JOB_STATES.failed]: AUDIO_ANALYSIS_STATUS.error,
   [BULLMQ_JOB_STATES.unknown]: AUDIO_ANALYSIS_STATUS.error,
   [BULLMQ_JOB_STATES.active]: AUDIO_ANALYSIS_STATUS.processing,
-  [BULLMQ_JOB_STATES.completed]: AUDIO_ANALYSIS_STATUS.success
+  [BULLMQ_JOB_STATES.completed]: AUDIO_ANALYSIS_STATUS.completed
 }

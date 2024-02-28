@@ -1,12 +1,9 @@
-import { AUDIO_ANALYSIS_STATUS } from '../constants/audioAnalysesStatus.js'
 import { AUDIO_ALREADY_ANALYZED, AUDIO_ANALYSIS_NOT_FOUND } from '../constants/errorCodes.js'
 import { CONFLICT, NOT_FOUND, OK } from '../constants/httpCodes.js'
-import { errorHandler } from '../middlewares/errorHandler.js'
 import AudioAnalysis from '../models/AudioAnalysis.js'
-import { audioAnalysisJobService } from '../services/audioAnalysisJobService.js'
+import audioAnalysisJobService from '../services/audioAnalysisJobService.js'
 import { youtubeService } from '../services/youtubeService.js'
 import AppError from '../utils/AppError.js'
-import { sseHeaders, writeSseResponse } from '../utils/sse.js'
 import { tryCatch } from '../utils/tryCatch.js'
 
 export const getAudioAnalysis = tryCatch(async (req, res) => {
@@ -23,27 +20,34 @@ export const getAudioAnalysis = tryCatch(async (req, res) => {
 }
 )
 
-export const createAudioAnalysis = tryCatch(async (req, res) => {
-  res.writeHead(200, sseHeaders)
-
+export const createAudioAnalysisJob = tryCatch(async (req, res) => {
   const { youtubeId } = req.body
   if (youtubeId === undefined) throw new Error('Youtube id was not provided')
 
   const audioAnalysis = await AudioAnalysis.findOriginalByYoutubeId({ youtubeId })
   if (audioAnalysis) throw new AppError(AUDIO_ALREADY_ANALYZED, 'Audio already analyzed.', CONFLICT)
 
-  const onNotify = ({ status, progress, result }) => {
-    writeSseResponse(res, { event: 'notify', data: { status, progress, result } })
-    if (status === AUDIO_ANALYSIS_STATUS.success) return res.end()
-  }
+  const job = await audioAnalysisJobService.createAudioAnalysisJob({ id: youtubeId })
 
-  const onError = ({ error }) => errorHandler(error, req, res)
+  res.status(OK).json({
+    status: 'success',
+    data: { id: job.id }
+  })
+})
 
-  const { disconect } = await audioAnalysisJobService.analyze({ youtubeId, onNotify, onError })
+export const getAudioAnalysisJob = tryCatch(async (req, res) => {
+  const { id } = req.params
 
-  // req.on('close', () => {
-  // audioAnalysisJobObservable.unsubscribe(observerHandlers)
-  // })
+  const { status, result } = await audioAnalysisJobService.findAudioAnalysisJob({ id })
+
+  res.status(OK).json({
+    status: 'success',
+    data: {
+      status,
+      result
+    }
+  })
+  // throw new AppError(null, 'Feature not implemented', 501)
 })
 
 export const getAllOriginalsAudioAnalysesBySource = (req, res, next) => {

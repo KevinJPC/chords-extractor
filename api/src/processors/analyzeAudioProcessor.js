@@ -11,7 +11,7 @@ export const analyzeAudioProcessor = async (job) => {
 
   const { bpm, beats, chordsPerBeats } = await analyzeAudioWithPython({ youtubeId })
 
-  const audioAnalysis = await AudioAnalysis.create({
+  await AudioAnalysis.create({
     youtubeId,
     title,
     bpm,
@@ -21,7 +21,7 @@ export const analyzeAudioProcessor = async (job) => {
     duration
   })
 
-  return audioAnalysis
+  return Promise.resolve()
 }
 
 const RESPONSE_STATUS = {
@@ -44,12 +44,13 @@ const analyzeAudioWithPython = async ({
         const response = JSON.parse(line)
 
         console.log('analyzing: ', response.status)
-        if (response.status === RESPONSE_STATUS.ERROR) return reject(response?.message)
+
         if (response.status === RESPONSE_STATUS.SUCCESS) {
           const { bpm, beats, chords_per_beats: chordsPerBeats } = response.data
           const beatsMapped = beats.map(({ start_time: startTime, end_time: endTime }) => ({ startTime, endTime }))
           return resolve({ bpm, beats: beatsMapped, chordsPerBeats })
         }
+        return reject(response?.message || 'Error analyzing audio')
       } catch (error) {
         reject(error)
       }

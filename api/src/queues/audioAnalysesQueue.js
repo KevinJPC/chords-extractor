@@ -2,7 +2,7 @@ import { Queue, QueueEvents, Worker, QueueGetters } from 'bullmq'
 import redisConfig from '../config/redis.js'
 import Redis from 'ioredis'
 import { analyzeAudioProcessor } from '../processors/analyzeAudioProcessor.js'
-import { AUDIO_ANALYSIS_STATUS_BY_JOB_STATES, AUDIO_ANALYSIS_STATUS } from '../constants/audioAnalysesStatus.js'
+import { AUDIO_ANALYSIS_STATUS_BY_JOB_STATES, AUDIO_ANALYSIS_STATUS, BULLMQ_JOB_STATES } from '../constants/audioAnalysesStatus.js'
 
 const redisClient = new Redis({
   ...redisConfig,
@@ -46,6 +46,7 @@ export const findJob = async ({ id }) => {
 export const getJobStatus = async ({ id }) => {
   await redisClient.ping() // suggested workaround temporary for issue: https://github.com/taskforcesh/bullmq/issues/995
   const state = await audioAnalysesQueue.getJobState(id)
+  if (state === BULLMQ_JOB_STATES.unknown) return undefined
   const status = AUDIO_ANALYSIS_STATUS_BY_JOB_STATES[state] || AUDIO_ANALYSIS_STATUS.error
   return status
 }

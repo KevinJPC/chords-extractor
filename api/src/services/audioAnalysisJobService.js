@@ -1,4 +1,3 @@
-import { AUDIO_ANALYSIS_STATUS } from '../constants/audioAnalysesStatus.js'
 import { YOUTUBE_VIDEO_NOT_FOUND } from '../constants/errorCodes.js'
 import { NOT_FOUND } from '../constants/httpCodes.js'
 import { createJob, findJob, getJobStatus, retryJob } from '../queues/audioAnalysesQueue.js'
@@ -7,6 +6,7 @@ import { youtubeService } from './youtubeService.js'
 
 const createAudioAnalysisJob = async ({ id }) => {
   let job = await findJob({ id })
+
   if (job === undefined) {
     const video = await youtubeService.findVideo({ id })
     if (video === undefined) throw new AppError(YOUTUBE_VIDEO_NOT_FOUND, 'Youtube video not found', NOT_FOUND)
@@ -16,7 +16,10 @@ const createAudioAnalysisJob = async ({ id }) => {
   } else {
     if (job.failedReason !== undefined) await retryJob({ job })
   }
-  return { id: job.id }
+
+  const status = await getJobStatus({ id })
+  if (status === undefined) throw new AppError('NOT_JOB_STATUS', 'Could not get job status', 400)
+  return { id: job.id, status }
 }
 
 const findAudioAnalysisJob = async ({ id }) => {
@@ -24,14 +27,9 @@ const findAudioAnalysisJob = async ({ id }) => {
   if (job === undefined) throw new AppError('AUDIO_ANALYSIS_JOB_NOT_FOUND', 'Audio analysis job not found', 404)
 
   const status = await getJobStatus({ id })
+  if (status === undefined) throw new AppError('NOT_JOB_STATUS', 'Could not get job status', 400)
 
-  let result = null
-  if (status === AUDIO_ANALYSIS_STATUS.completed) {
-    const job = await findJob({ id })
-    result = job.returnvalue
-  }
-
-  return { status, result }
+  return { id: job.id, status }
 }
 
 export default { createAudioAnalysisJob, findAudioAnalysisJob }

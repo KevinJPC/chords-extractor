@@ -1,9 +1,14 @@
 import { Router } from 'express'
-import { createAudioAnalysisJob, getAllOriginalsAudioAnalysesBySource, getAudioAnalysis, getAudioAnalysisJob } from '../controllers/audioAnalysesController.js'
+import {
+  createAudioAnalysisJob,
+  getYoutubeResultsWithAnalyzeStatus,
+  getAudioAnalysisByYoutubeId,
+  getAudioAnalysisJob
+} from '../controllers/audioAnalysesController.js'
 
 const router = Router()
-router.get('/', getAllOriginalsAudioAnalysesBySource)
-router.get('/:id', getAudioAnalysis)
+router.get('/youtube-search', getYoutubeResultsWithAnalyzeStatus)
+router.get('/:youtubeId', getAudioAnalysisByYoutubeId)
 router.post('/job', createAudioAnalysisJob)
 router.get('/job/:id', getAudioAnalysisJob)
 

@@ -20,8 +20,6 @@ def main():
 
     chords_per_beats = map_chords_per_beats(chords, beats)
 
-    # raise Error('error')
-
     print_json({'status': RESPONSE_STATUS['SUCCESS'], 'data': {'bpm': bpm, 'beats': beats, 'chords_per_beats': chords_per_beats}})
 
 if __name__ == '__main__':

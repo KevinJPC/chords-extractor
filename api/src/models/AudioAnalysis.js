@@ -71,7 +71,6 @@ class AudioAnalysis {
   }
 
   static async createCopy ({ fromId, editTitle, newChordsPerBeats }) {
-    // try {
     const audioAnalysisToCopy = audioAnalysesCollection().findOne({ _id: new ObjectId(fromId) })
     if (!audioAnalysisToCopy) return null
 
@@ -90,9 +89,6 @@ class AudioAnalysis {
     const { insertedId } = await audioAnalysesCollection().insertOne(doc)
     const newAudioAnalysisCopy = { _id: insertedId, ...doc }
     return newAudioAnalysisCopy
-    // } catch (error) {
-    // throw error
-    // }
   }
 
   static async findById ({ id }) {
@@ -101,10 +97,26 @@ class AudioAnalysis {
     return audioAnalysis
   }
 
+  static async findEdit ({ youtubeId, id }) {
+    try {
+      const audioAnalysis = await audioAnalysesCollection().findOne({ youtubeId, id: new ObjectId(id) })
+      if (!audioAnalysis) return null
+      return audioAnalysis
+    } catch (error) {
+      if (error.name === 'BSONError') return null
+      throw error
+    }
+  }
+
   static async findOriginalByYoutubeId ({ youtubeId }) {
-    const audioAnalysis = await audioAnalysesCollection().findOne({ youtubeId, isOriginal: true })
-    if (!audioAnalysis) return null
-    return audioAnalysis
+    try {
+      const audioAnalysis = await audioAnalysesCollection().findOne({ youtubeId, isOriginal: true })
+      if (!audioAnalysis) return null
+      return audioAnalysis
+    } catch (error) {
+      if (error.name === 'BSONError') return null
+      throw error
+    }
   }
 
   static async findAllOriginalsByYoutubeIds ({ youtubeIds }) {

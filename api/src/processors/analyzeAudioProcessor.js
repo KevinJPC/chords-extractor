@@ -7,11 +7,13 @@ const PYTHON_CMD = path.join(process.cwd(), '..', 'audio-analysis-py', '.venv', 
 const PYTHON_SCRIPT = path.join(process.cwd(), '..', 'audio-analysis-py', 'src', 'main.py')
 
 export const analyzeAudioProcessor = async (job) => {
+  await job.updateProgress({ started: true })
+
   const { youtubeId, title, duration, thumbnails } = job.data
 
   const { bpm, beats, chordsPerBeats } = await analyzeAudioWithPython({ youtubeId })
 
-  await AudioAnalysis.create({
+  const audioAnalysis = await AudioAnalysis.create({
     youtubeId,
     title,
     bpm,
@@ -21,7 +23,7 @@ export const analyzeAudioProcessor = async (job) => {
     duration
   })
 
-  return Promise.resolve()
+  return audioAnalysis
 }
 
 const RESPONSE_STATUS = {
@@ -63,7 +65,8 @@ const analyzeAudioWithPython = async ({
     pythonProcess.on('exit', (code) => {
       if (code !== 0) {
         console.log('error', code)
-        reject(new Error(error))
+        console.error('error analyzing audio error: ', error)
+        reject(new Error('Error analyzing audio'))
       }
     })
   })

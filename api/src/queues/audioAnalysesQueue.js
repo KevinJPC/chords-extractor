@@ -1,8 +1,8 @@
-import { Queue, QueueEvents, Worker, QueueGetters } from 'bullmq'
+import { Queue, QueueEvents, Worker } from 'bullmq'
 import redisConfig from '../config/redis.js'
 import Redis from 'ioredis'
 import { analyzeAudioProcessor } from '../processors/analyzeAudioProcessor.js'
-import { AUDIO_ANALYSIS_STATUS_BY_JOB_STATES, AUDIO_ANALYSIS_STATUS, BULLMQ_JOB_STATES } from '../constants/audioAnalysesStatus.js'
+import { AUDIO_ANALYSIS_STATUS } from '../constants/audioAnalysesStatus.js'
 
 const redisClient = new Redis({
   ...redisConfig,
@@ -30,25 +30,34 @@ const audioAnalysesQueue = new Queue(
   }
 )
 
-await audioAnalysesQueue.clean(2000, 2)
+// await audioAnalysesQueue.clean(2000, 3)
+// await audioAnalysesQueue.clean(2000, 3, 'failed')
 
 export const retryJob = async ({ job }) => {
   await redisClient.ping() // suggested workaround temporary for issue: https://github.com/taskforcesh/bullmq/issues/995
+
+  // await job.updateProgress({ started: false })
   await job.retry()
+
+  const newJobInfo = findJob({ id: job.id })
+  //
+  return newJobInfo
 }
 
 export const findJob = async ({ id }) => {
   await redisClient.ping() // suggested workaround temporary for issue: https://github.com/taskforcesh/bullmq/issues/995
   const job = await audioAnalysesQueue.getJob(id)
+
+  if (job === undefined) return undefined
   return job
 }
 
-export const getJobStatus = async ({ id }) => {
-  await redisClient.ping() // suggested workaround temporary for issue: https://github.com/taskforcesh/bullmq/issues/995
-  const state = await audioAnalysesQueue.getJobState(id)
-  if (state === BULLMQ_JOB_STATES.unknown) return undefined
-  const status = AUDIO_ANALYSIS_STATUS_BY_JOB_STATES[state] || AUDIO_ANALYSIS_STATUS.error
-  return status
+export const getJobStatus = ({ job }) => {
+  console.log('failedReason', job.failedReason)
+  if (job.failedReason !== undefined) return AUDIO_ANALYSIS_STATUS.error
+  if (job.returnvalue !== null) return AUDIO_ANALYSIS_STATUS.completed
+  if (job.progress?.started === true) return AUDIO_ANALYSIS_STATUS.processing
+  return AUDIO_ANALYSIS_STATUS.waiting
 }
 
 export const createJob = async ({

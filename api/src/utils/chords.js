@@ -11,13 +11,13 @@ const parseChord = chordSymbol.chordParserFactory({ notationSystems: ['english']
 const chordsTest = [null, '', 'G/B', 'Cmaj7', 'Am', 'G']
 
 const formatChords = (chords) => {
-  const formatedChords = chords.map((chord) => {
+  const formattedChords = chords.map((chord) => {
     const chordObj = parseChord(chord)
-    const formatedChord = renderChord(chordObj)
-    return formatedChord
+    const formattedChord = renderChord(chordObj)
+    return formattedChord
   })
 
-  return formatedChords
+  return formattedChords
 }
 
 const validateAndFormatChords = (chords) => {

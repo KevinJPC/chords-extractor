@@ -92,14 +92,8 @@ class AudioAnalysis {
   }
 
   static async findById ({ id }) {
-    const audioAnalysis = await audioAnalysesCollection().findOne({ _id: new ObjectId(id) })
-    if (!audioAnalysis) return null
-    return audioAnalysis
-  }
-
-  static async findEdit ({ youtubeId, id }) {
     try {
-      const audioAnalysis = await audioAnalysesCollection().findOne({ youtubeId, id: new ObjectId(id) })
+      const audioAnalysis = await audioAnalysesCollection().findOne({ _id: new ObjectId(id) })
       if (!audioAnalysis) return null
       return audioAnalysis
     } catch (error) {
@@ -109,14 +103,9 @@ class AudioAnalysis {
   }
 
   static async findOriginalByYoutubeId ({ youtubeId }) {
-    try {
-      const audioAnalysis = await audioAnalysesCollection().findOne({ youtubeId, isOriginal: true })
-      if (!audioAnalysis) return null
-      return audioAnalysis
-    } catch (error) {
-      if (error.name === 'BSONError') return null
-      throw error
-    }
+    const audioAnalysis = await audioAnalysesCollection().findOne({ youtubeId, isOriginal: true })
+    if (!audioAnalysis) return null
+    return audioAnalysis
   }
 
   static async findAllOriginalsByYoutubeIds ({ youtubeIds }) {

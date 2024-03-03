@@ -1,25 +1,19 @@
-import { AUDIO_ALREADY_ANALYZED, AUDIO_ANALYSIS_NOT_FOUND } from '../constants/errorCodes.js'
-import { CONFLICT, CREATED, NOT_FOUND, OK } from '../constants/httpCodes.js'
+import * as errorCodes from '../constants/errorCodes.js'
+import * as httpCodes from '../constants/httpCodes.js'
 import AudioAnalysis from '../models/AudioAnalysis.js'
 import audioAnalysisJobService from '../services/audioAnalysisJobService.js'
 import { youtubeService } from '../services/youtubeService.js'
 import AppError from '../utils/AppError.js'
 import { tryCatch } from '../utils/tryCatch.js'
 
-export const getAudioAnalysisByYoutubeId = tryCatch(async (req, res) => {
-  const { youtubeId } = req.params
-  const { edit } = req.query
+export const getAudioAnalysis = tryCatch(async (req, res) => {
+  const { id } = req.params
 
-  let audioAnalysis = null
-  if (edit === undefined) {
-    audioAnalysis = await AudioAnalysis.findOriginalByYoutubeId({ youtubeId })
-  } else {
-    audioAnalysis = await AudioAnalysis.findEdit({ youtubeId, id: edit })
-  }
+  const audioAnalysis = await AudioAnalysis.findById({ id })
 
-  if (audioAnalysis === undefined) throw new AppError(AUDIO_ANALYSIS_NOT_FOUND, 'Audio analysis not found.', NOT_FOUND)
+  if (audioAnalysis === null) throw new AppError(errorCodes.NOT_FOUND, 'Audio analysis not found.', httpCodes.NOT_FOUND)
 
-  res.status(OK).json({
+  res.status(httpCodes.OK).json({
     status: 'success',
     data: { ...audioAnalysis }
   })
@@ -32,7 +26,7 @@ export const createAudioAnalysisJob = tryCatch(async (req, res) => {
 
   const job = await audioAnalysisJobService.createAudioAnalysisJob({ id: youtubeId })
 
-  res.status(CREATED).json({
+  res.status(httpCodes.CREATED).json({
     status: 'success',
     data: {
       id: job.id,
@@ -47,7 +41,7 @@ export const getAudioAnalysisJob = tryCatch(async (req, res) => {
 
   const job = await audioAnalysisJobService.findAudioAnalysisJob({ id })
 
-  res.status(OK).json({
+  res.status(httpCodes.OK).json({
     status: 'success',
     data: {
       id: job.id,
@@ -58,9 +52,9 @@ export const getAudioAnalysisJob = tryCatch(async (req, res) => {
 })
 
 export const getYoutubeResultsWithAnalyzeStatus = tryCatch(async (req, res) => {
-  const { searchQuery, continuation } = req.query
+  const { q, continuation } = req.query
 
-  const { results, continuation: nextContinuation } = await youtubeService.search({ query: searchQuery, continuation })
+  const { results, continuation: nextContinuation } = await youtubeService.search({ query: q, continuation })
 
   const resultsIds = results.map(result => result.id)
 
@@ -68,10 +62,24 @@ export const getYoutubeResultsWithAnalyzeStatus = tryCatch(async (req, res) => {
 
   const mappedResults = results.map(({ id: youtubeId, title, thumbnails, duration }) => {
     const audioAnalysis = resultsAlreadyAnalyzed.find(audioAnalysis => audioAnalysis.youtubeId === youtubeId)
-    return { youtubeId, title, thumbnails, duration, ...audioAnalysis }
+
+    return {
+      youtubeId,
+      title,
+      thumbnails,
+      duration,
+      analyzed: audioAnalysis !== undefined,
+      audioAnalysis: audioAnalysis !== undefined
+        ? {
+            _id: audioAnalysis._id,
+            edits: audioAnalysis.edits,
+            bpm: audioAnalysis.bpm
+          }
+        : null
+    }
   })
 
-  res.status(OK).json({
+  res.status(httpCodes.OK).json({
     status: 'success',
     data: {
       results: mappedResults,

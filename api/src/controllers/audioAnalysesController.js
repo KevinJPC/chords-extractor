@@ -68,7 +68,7 @@ export const getYoutubeResultsWithAnalyzeStatus = tryCatch(async (req, res) => {
       title,
       thumbnails,
       duration,
-      analyzed: audioAnalysis !== undefined,
+      isAnalyzed: audioAnalysis !== undefined,
       audioAnalysis: audioAnalysis !== undefined
         ? {
             _id: audioAnalysis._id,

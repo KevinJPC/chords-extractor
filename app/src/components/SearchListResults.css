@@ -1,14 +1,4 @@
-.search-list-results {
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-  list-style: none;
-}
 
-.search-list-results__item {
-  opacity: 1;
-  transition: opacity .3s ease-out;
-}
 
 .search-list-results__item--disable {
   opacity: .5;

@@ -1,7 +1,7 @@
 import './Search.css'
-import { getAllAudioAnalysesByYoutubeSearch } from '../services/audioAnalyses'
+import { getYoutubeResultsWithAnalyzeStatus } from '../services/audioAnalyses'
 import { useQueryParams } from '../hooks/useQueryParams'
-import { SearchListResults, SearchListResultsSkeleton } from '../components/SearchListResults'
+import { SearchListResults } from '../components/SearchListResults'
 import { useInfiniteQuery } from '@tanstack/react-query'
 import { InfinityScroll } from '../components/InfiniteScroll'
 
@@ -10,7 +10,7 @@ export const Search = () => {
 
   const { isLoading, data, fetchNextPage, hasNextPage, isFetchingNextPage } = useInfiniteQuery({
     queryKey: ['search', q],
-    queryFn: ({ pageParam }) => getAllAudioAnalysesByYoutubeSearch({ searchQuery: q, continuation: pageParam }),
+    queryFn: ({ pageParam }) => getYoutubeResultsWithAnalyzeStatus({ q, continuation: pageParam }),
     getNextPageParam: (lastPage) => lastPage?.continuation,
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,
@@ -30,16 +30,35 @@ export const Search = () => {
     <>
       <main className='container'>
         <div className='results-container'>
-          {mappedResults?.length > 0 ? <SearchListResults results={mappedResults} /> : null}
-          {isLoading ? <SearchListResultsSkeleton count={10} /> : null}
-          {hasNextPage
-            ? (
-              <InfinityScroll isLoading={isLoading || isFetchingNextPage} onIntersect={fetchNextPage}>
-                <SearchListResultsSkeleton count={2} />
-              </InfinityScroll>
-              )
-            : null}
-
+          <SearchListResults>
+            <ul className='results'>
+              {isLoading &&
+                <>
+                  {Array(10).fill().map((_, index) =>
+                    <li key={`skeleton-${index}`} className='results__item'><SearchListResults.ItemSkeleton /></li>)}
+                </>}
+              {mappedResults.length > 0 &&
+                <>
+                  {mappedResults.map(({ youtubeId, thumbnails, title, duration, audioAnalysis, isAnalyzed }) =>
+                    <li key={youtubeId} className='results__item'>
+                      <SearchListResults.Item
+                        youtubeId={youtubeId}
+                        title={title}
+                        thumbnails={thumbnails}
+                        duration={duration}
+                        isAnalyzed={isAnalyzed}
+                        audioAnalysis={audioAnalysis}
+                      />
+                    </li>)}
+                </>}
+              {hasNextPage &&
+                <li className='results__item'>
+                  <InfinityScroll isLoading={isLoading || isFetchingNextPage} onIntersect={fetchNextPage}>
+                    <SearchListResults.ItemSkeleton />
+                  </InfinityScroll>
+                </li>}
+            </ul>
+          </SearchListResults>
         </div>
       </main>
     </>

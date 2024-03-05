@@ -1,9 +1,7 @@
-import { SSE } from 'sse.js'
-
 const API_URL = 'http://localhost:3000/api'
 
 export const getAudioAnalysisById = async ({ id }) => {
-  const endpoint = `${API_URL}/audio-analyses/${id}`
+  const endpoint = new URL(`${API_URL}/audio-analyses/${id}`)
   const res = await fetch(endpoint)
   const { data } = await res.json()
   const audioAnalysis = {
@@ -24,62 +22,33 @@ export const getAudioAnalysisById = async ({ id }) => {
   return audioAnalysis
 }
 
-export const getAllAudioAnalysesByYoutubeSearch = async ({ searchQuery, continuation }) => {
-  let endpoint = `${API_URL}/audio-analyses?source=youtube&searchQuery=${searchQuery}`
-  if (continuation !== undefined) endpoint = endpoint.concat(`&continuation=${continuation}`)
+export const getYoutubeResultsWithAnalyzeStatus = async ({ q, continuation }) => {
+  const endpoint = new URL(`${API_URL}/audio-analyses/youtube-search`)
+  endpoint.searchParams.set('q', q)
+  if (continuation) endpoint.searchParams.set('continuation', continuation)
   const res = await fetch(endpoint)
   const { data } = await res.json()
-  const mappedResults = data.results.map((audioAnalysis) => ({
-    _id: audioAnalysis?._id,
-    title: audioAnalysis?.title,
-    youtubeId: audioAnalysis?.youtubeId,
-    thumbnails: audioAnalysis?.thumbnails,
-    duration: audioAnalysis?.duration,
-    bpm: audioAnalysis?.bpm,
-    chordsPerBeats: audioAnalysis?.chordsPerBeats,
-    edits: audioAnalysis?.edits
+  const mappedResults = data.results.map((result) => ({
+    title: result.title,
+    youtubeId: result.youtubeId,
+    thumbnails: result.thumbnails,
+    duration: result.duration,
+    isAnalyzed: result.isAnalyzed,
+    audioAnalysis: result.audioAnalysis !== null
+      ? {
+          _id: result.audioAnalysis._id,
+          edits: result.audioAnalysis.edits,
+          bpm: result.audioAnalysis.bpm
+        }
+      : null
   }))
   return { results: mappedResults, continuation: data.continuation }
 }
 
-export const createAudioAnalysis = ({ youtubeId, onOpen, onError, onQueue, onProcess, onSuccess }) => {
-  const endpoint = `${API_URL}/audio-analyses`
-  const data = { youtubeId }
-  const source = new SSE(endpoint, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json'
-    },
-    payload: JSON.stringify(data)
-  })
+export const createAudioAnalysisJob = ({ youtubeId }) => {
+  const endpoint = new URL(`${API_URL}/audio-analyses/job`)
+}
 
-  source.onopen = () => {
-    onOpen?.()
-  }
-
-  source.onerror = () => {
-    onError?.()
-  }
-
-  source.onqueue = (e) => {
-    const data = JSON.parse(e.data)
-    onQueue?.(data)
-  }
-
-  source.onprocess = (e) => {
-    const data = JSON.parse(e.data)
-    onProcess?.(data)
-  }
-
-  source.onsuccess = (e) => {
-    closeSource()
-    const data = JSON.parse(e.data)
-    onSuccess?.(data)
-  }
-
-  const closeSource = () => {
-    source.close()
-  }
-
-  return { closeSource }
+export const getAudioAnalysisJob = ({ jobId }) => {
+  const endpoint = new URL(`${API_URL}/audio-analyses/job/${jobId}`)
 }

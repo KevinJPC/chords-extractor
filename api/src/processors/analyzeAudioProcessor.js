@@ -2,6 +2,7 @@ import path from 'node:path'
 import AudioAnalysis from '../models/AudioAnalysis.js'
 import { spawn } from 'node:child_process'
 import readLine from 'node:readline'
+import { formatChordSymbols } from '../../../chords-utils/index.js'
 
 const PYTHON_CMD = path.join(process.cwd(), '..', 'audio-analysis-py', '.venv', 'scripts', 'python')
 const PYTHON_SCRIPT = path.join(process.cwd(), '..', 'audio-analysis-py', 'src', 'main.py')
@@ -13,11 +14,16 @@ export const analyzeAudioProcessor = async (job) => {
 
   const { bpm, beats, chordsPerBeats } = await analyzeAudioWithPython({ youtubeId })
 
+  const chordsPerBeatsFormatted = formatChordSymbols(chordsPerBeats)
+
+  console.log('chordsPerBeats: ', chordsPerBeats)
+  console.log('chordsPerBeatsFormatted: ', chordsPerBeatsFormatted)
+
   const audioAnalysis = await AudioAnalysis.create({
     youtubeId,
     title,
     bpm,
-    chordsPerBeats,
+    chordsPerBeats: chordsPerBeatsFormatted,
     beats,
     thumbnails,
     duration

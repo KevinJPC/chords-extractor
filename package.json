@@ -5,7 +5,7 @@
   "workspaces": [
     "app",
     "api",
-    "utils"
+    "chords-utils"
   ],
   "scripts": {
     "dev:app": "npm run dev --workspace=app",
@@ -22,8 +22,5 @@
       "standard"
     ]
   },
-  "type": "module",
-  "dependencies": {
-    "chord-symbol": "4.0.0"
-  }
+  "type": "module"
 }

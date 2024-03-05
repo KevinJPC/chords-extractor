@@ -2,7 +2,7 @@ import chordSymbol from 'chord-symbol/lib/chord-symbol.js'
 
 const { chordParserFactory, chordRendererFactory } = chordSymbol
 
-export const formatChordSymbols = (chordSymbols, { simplify = false, transpose = 0 }) => {
+export const formatChordSymbols = (chordSymbols, { simplify = false, transpose = 0 } = {}) => {
   const parseChord = chordParserFactory({ notationSystems: ['english'] })
   const renderChord = chordRendererFactory({
     useShortNamings: true,

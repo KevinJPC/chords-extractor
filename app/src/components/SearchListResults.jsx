@@ -1,4 +1,4 @@
-import { createContext, useContext, useState } from 'react'
+import { createContext, useContext, useEffect, useState } from 'react'
 import { createAudioAnalysisJob, getAudioAnalysisJob } from '../services/audioAnalyses'
 import { AudioCard } from './AudioCard'
 import './SearchListResults.css'
@@ -6,6 +6,7 @@ import Skeleton, { SkeletonTheme } from 'react-loading-skeleton'
 import 'react-loading-skeleton/dist/skeleton.css'
 import { Spinner } from './Spinner'
 import { useLocation } from 'wouter'
+import { useMutation, useQuery } from '@tanstack/react-query'
 
 const ANALYSIS_STATUS = {
   starting: 'starting',
@@ -18,12 +19,28 @@ const SearchListResultsContext = createContext()
 
 export const SearchListResults = ({ children, ...props }) => {
   const [youtubeIdAnalyzing, setYoutubeIdAnalyzing] = useState(null)
-  const [analysisStatus, setAnalysisStatus] = useState(null)
 
-  const updateAnalyzingId = ({ youtubeId }) => {
-    // if (youtubeIdAnalyzing !== null) return
-    // setYoutubeIdAnalyzing(youtubeId)
+  const { isSuccess: mutationIsSuccess, isPending: mutationIsPending, data: mutationData, error, mutate: runAudioAnalysisJobMutation } = useMutation({
+    mutationFn: createAudioAnalysisJob
+  })
+  const { data: queryData } = useQuery({
+    queryKey: ['job'],
+    queryFn: () => getAudioAnalysisJob({ jobId: mutationData.id }),
+    enabled: mutationIsSuccess && mutationData?.id !== null && ['waiting', 'processing'].includes(mutationData?.status),
+    refetchInterval: (query) => {
+      // console.log(query)
+      if (['waiting', 'processing'].includes(query.state.data?.status)) return 1000
+      return false
+    }
+  })
+
+  const job = mutationData !== undefined || queryData !== undefined ? { ...mutationData, ...queryData } : undefined
+
+  const analyze = ({ youtubeId }) => {
+    if (youtubeIdAnalyzing !== null) return
+    setYoutubeIdAnalyzing(youtubeId)
     // setAnalysisStatus(ANALYSIS_STATUS.starting)
+    runAudioAnalysisJobMutation({ youtubeId })
   }
   ///
   const [, navigate] = useLocation()
@@ -34,35 +51,23 @@ export const SearchListResults = ({ children, ...props }) => {
     // navigate(`chords/${youtubeId}`)
   }
   return (
-    <SearchListResultsContext.Provider value={{ youtubeIdAnalyzing, updateAnalyzingId, analysisStatus }}>
+    <SearchListResultsContext.Provider value={{ youtubeIdAnalyzing, analyze, mutationIsPending, mutationIsSuccess, job }}>
       {children}
     </SearchListResultsContext.Provider>
   )
 }
 
 SearchListResults.Item = ({ youtubeId, thumbnails, title, duration, audioAnalysis, isAnalyzed }) => {
-  const { youtubeIdAnalyzing, updateAnalyzingId, analysisStatus } = useContext(SearchListResultsContext)
+  const { youtubeIdAnalyzing, analyze, mutationIsPending, mutationIsSuccess, job } = useContext(SearchListResultsContext)
   const isAnalyzing = youtubeIdAnalyzing === youtubeId
 
-  const showStatus = !isAnalyzing || analysisStatus === ANALYSIS_STATUS.starting
-  const isInQueue = isAnalyzing && analysisStatus === ANALYSIS_STATUS.queue
-  const isProcessing = isAnalyzing && analysisStatus === ANALYSIS_STATUS.processing
-  const hasSucceded = isAnalyzing && analysisStatus === ANALYSIS_STATUS.success
+  const isInQueue = isAnalyzing && (job?.status === 'waiting')
+  const isProcessing = isAnalyzing && (job?.status === 'processing')
+  const hasSucceded = isAnalyzing && (job?.status === 'completed')
   const showDetailList = isAnalyzed
-  const showButton = !isAnalyzed && (!isAnalyzing || analysisStatus === ANALYSIS_STATUS.starting)
-  const buttonContent = isAnalyzing && analysisStatus === ANALYSIS_STATUS.starting ? <Spinner size={14} /> : 'Analyze now'
-
-  // const showStatus = true
-  // const isInQueue = false
-  // const isProcessing = false
-  // const hasSucceded = false
-  // const showDetailList = isAnalyzed
-  // const showButton = true
-  // const buttonContent = 'Analyze now'
-
-  const handleOnAnalyze = ({ youtubeId }) => {
-    updateAnalyzingId({ youtubeId })
-  }
+  const showButton = !isAnalyzed && (!isAnalyzing || job === undefined)
+  const buttonContent = isAnalyzing && mutationIsPending ? <Spinner size={14} /> : 'Analyze now'
+  const showStatus = !isAnalyzing || job === undefined
 
   return (
     <AudioCard>
@@ -85,7 +90,7 @@ SearchListResults.Item = ({ youtubeId, thumbnails, title, duration, audioAnalysi
           )}
 
           {showButton && (
-            <AudioCard.Button onClick={() => handleOnAnalyze({ youtubeId })}>
+            <AudioCard.Button onClick={() => analyze({ youtubeId })}>
               {buttonContent}
             </AudioCard.Button>
           )}

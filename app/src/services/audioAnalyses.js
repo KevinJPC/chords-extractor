@@ -45,10 +45,24 @@ export const getYoutubeResultsWithAnalyzeStatus = async ({ q, continuation }) =>
   return { results: mappedResults, continuation: data.continuation }
 }
 
-export const createAudioAnalysisJob = ({ youtubeId }) => {
+export const createAudioAnalysisJob = async ({ youtubeId }) => {
   const endpoint = new URL(`${API_URL}/audio-analyses/job`)
+  const res = await fetch(endpoint, {
+    method: 'POST',
+    headers: {
+      'content-type': 'application/json'
+    },
+    body: JSON.stringify({
+      youtubeId
+    })
+  })
+  const { data } = await res.json()
+  return { id: data.id, status: data.status, result: data.result }
 }
 
-export const getAudioAnalysisJob = ({ jobId }) => {
+export const getAudioAnalysisJob = async ({ jobId }) => {
   const endpoint = new URL(`${API_URL}/audio-analyses/job/${jobId}`)
+  const res = await fetch(endpoint)
+  const { data } = await res.json()
+  return { id: data.id, status: data.status, result: data.result }
 }

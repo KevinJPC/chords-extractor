@@ -17,9 +17,9 @@ export const Search = () => {
     refetchOnMount: false
   })
 
+  const results = data?.pages.flatMap(({ results }) => results) || []
   // third party library used on the backend for searching on youtube sometimes returns duplicate results between pages
   // so it is filtered to remove those duplicates
-  const results = data?.pages.flatMap(({ results }) => results) || []
   const mappedResults = Object.values(results.reduce((resultsAcc, result) => {
     const exists = resultsAcc[result.youtubeId] || false
     if (!exists) return { ...resultsAcc, [result.youtubeId]: result }

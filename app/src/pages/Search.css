@@ -1,18 +1,7 @@
-.results-container {
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-  margin-bottom: 1.5rem;
-}
-
 .results {
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
   list-style: none;
-}
-
-.results__item {
-  opacity: 1;
-  transition: opacity .3s ease-out;
+  margin-bottom: 1.5rem;
 }

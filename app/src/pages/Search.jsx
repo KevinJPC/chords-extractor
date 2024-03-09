@@ -29,37 +29,35 @@ export const Search = () => {
   return (
     <>
       <main className='container'>
-        <div className='results-container'>
-          <SearchListResults>
-            <ul className='results'>
-              {isLoading &&
-                <>
-                  {Array(10).fill().map((_, index) =>
-                    <li key={`skeleton-${index}`} className='results__item'><SearchListResults.ItemSkeleton /></li>)}
-                </>}
-              {mappedResults.length > 0 &&
-                <>
-                  {mappedResults.map(({ youtubeId, thumbnails, title, duration, audioAnalysis, isAnalyzed }) =>
-                    <li key={youtubeId} className='results__item'>
-                      <SearchListResults.Item
-                        youtubeId={youtubeId}
-                        title={title}
-                        thumbnails={thumbnails}
-                        duration={duration}
-                        isAnalyzed={isAnalyzed}
-                        audioAnalysis={audioAnalysis}
-                      />
-                    </li>)}
-                </>}
-              {hasNextPage &&
-                <li className='results__item'>
-                  <InfinityScroll isLoading={isLoading || isFetchingNextPage} onIntersect={fetchNextPage}>
-                    <SearchListResults.ItemSkeleton />
-                  </InfinityScroll>
-                </li>}
-            </ul>
-          </SearchListResults>
-        </div>
+        <SearchListResults>
+          <ul className='results'>
+            {isLoading &&
+              <>
+                {Array(10).fill().map((_, index) =>
+                  <li key={`skeleton-${index}`}><SearchListResults.ItemSkeleton /></li>)}
+              </>}
+            {mappedResults.length > 0 &&
+              <>
+                {mappedResults.map(({ youtubeId, thumbnails, title, duration, audioAnalysis, isAnalyzed }) =>
+                  <li key={youtubeId}>
+                    <SearchListResults.Item
+                      youtubeId={youtubeId}
+                      title={title}
+                      thumbnails={thumbnails}
+                      duration={duration}
+                      isAnalyzed={isAnalyzed}
+                      audioAnalysis={audioAnalysis}
+                    />
+                  </li>)}
+              </>}
+            {hasNextPage &&
+              <li>
+                <InfinityScroll isLoading={isLoading || isFetchingNextPage} onIntersect={fetchNextPage}>
+                  <SearchListResults.ItemSkeleton />
+                </InfinityScroll>
+              </li>}
+          </ul>
+        </SearchListResults>
       </main>
     </>
   )

@@ -5,15 +5,11 @@ import './SearchListResults.css'
 import Skeleton, { SkeletonTheme } from 'react-loading-skeleton'
 import 'react-loading-skeleton/dist/skeleton.css'
 import { Spinner } from './Spinner'
-import { Link, useLocation } from 'wouter'
+import { useLocation } from 'wouter'
 import { useMutation, useQuery } from '@tanstack/react-query'
-
-const ANALYSIS_STATUS = {
-  starting: 'starting',
-  queue: 'queue',
-  processing: 'processing',
-  success: 'success'
-}
+import { ConditionalLink } from './ConditionalLink'
+import { AUDIO_ANALYSIS_STATUS } from '../../../constants/audioAnalisesStatus.js'
+import { queryClient } from '../config/queryClient.js'
 
 const SearchListResultsContext = createContext()
 
@@ -22,6 +18,7 @@ export const SearchListResults = ({ children, ...props }) => {
   const [, navigate] = useLocation()
 
   const { isSuccess: mutationIsSuccess, isPending: mutationIsPending, data: mutationData, error: mutationError, mutate: runAudioAnalysisJobMutation } = useMutation({
+    mutationKey: ['job'],
     mutationFn: createAudioAnalysisJob
   })
   const { data: queryData, error: queryError } = useQuery({
@@ -35,40 +32,40 @@ export const SearchListResults = ({ children, ...props }) => {
     refetchOnWindowFocus: false
   })
 
-  const { jobResult, jobIsError, jobIsInQueue, jobIsProcessing, jobIsSuccess } = useMemo(() => {
+  const { jobResult, jobIsError, jobIsInQueue, jobIsProcessing, jobIsCompleted } = useMemo(() => {
     const job = mutationData !== undefined || queryData !== undefined ? { ...mutationData, ...queryData } : undefined
     const jobIsError = mutationError !== null || queryError !== null || job?.status === 'error'
-    const jobIsInQueue = job?.status === 'waiting'
-    const jobIsProcessing = job?.status === 'processing'
-    const jobIsSuccess = job?.status === 'completed'
-    return { jobResult: job?.result, jobIsError, jobIsInQueue, jobIsProcessing, jobIsSuccess }
+    const jobIsInQueue = job?.status === AUDIO_ANALYSIS_STATUS.waiting
+    const jobIsProcessing = job?.status === AUDIO_ANALYSIS_STATUS.processing
+    const jobIsCompleted = job?.status === AUDIO_ANALYSIS_STATUS.completed
+    return { jobResult: job?.result, jobIsError, jobIsInQueue, jobIsProcessing, jobIsCompleted }
   }, [mutationData, queryData, mutationError, queryError])
 
   useEffect(() => {
-    if (!jobIsSuccess) return
+    if (!jobIsCompleted) return
     const timeoutId = setTimeout(() => {
       navigate(`chords/${jobResult._id}`)
     }, 1000)
 
     return () => clearTimeout(timeoutId)
-  }, [jobIsSuccess])
+  }, [jobIsCompleted])
 
   const analyze = ({ youtubeId }) => {
-    console.log(selectedResultId && !jobIsError)
     if (selectedResultId && !jobIsError) return
+    queryClient.resetQueries({ queryKey: 'job', exact: true })
     setSelectedResultId(youtubeId)
     runAudioAnalysisJobMutation({ youtubeId })
   }
 
   return (
-    <SearchListResultsContext.Provider value={{ selectedResultId, analyze, mutationIsPending, jobIsError, jobIsInQueue, jobIsProcessing, jobIsSuccess }}>
+    <SearchListResultsContext.Provider value={{ selectedResultId, analyze, mutationIsPending, jobIsError, jobIsInQueue, jobIsProcessing, jobIsCompleted }}>
       {children}
     </SearchListResultsContext.Provider>
   )
 }
 
 SearchListResults.Item = ({ youtubeId, thumbnails, title, duration, audioAnalysis, isAnalyzed }) => {
-  const { selectedResultId, analyze, mutationIsPending, jobIsError, jobIsInQueue, jobIsProcessing, jobIsSuccess } = useContext(SearchListResultsContext)
+  const { selectedResultId, analyze, mutationIsPending, jobIsError, jobIsInQueue, jobIsProcessing, jobIsCompleted } = useContext(SearchListResultsContext)
 
   const isSelectedResult = selectedResultId === youtubeId
 
@@ -77,45 +74,51 @@ SearchListResults.Item = ({ youtubeId, thumbnails, title, duration, audioAnalysi
   const buttonContent = isSelectedResult && mutationIsPending ? <Spinner size={14} /> : 'Analyze now'
   const showStatus = !isSelectedResult || mutationIsPending || jobIsError
 
+  const audioCardClassName = (selectedResultId !== null && !isSelectedResult && !jobIsError) ? 'results-item--disabled' : ''
+
   const bpm = Math.round(audioAnalysis?.bpm)
 
   return (
-    <Link to={isAnalyzed ? `chords/${audioAnalysis._id}` : ''} replace={isAnalyzed === false}>
-      <a>
-        <AudioCard>
-          <AudioCard.Thumbnail>
-            <AudioCard.ThumbnailImg src={thumbnails[0].url} />
-          </AudioCard.Thumbnail>
-          <AudioCard.Content>
-            <AudioCard.Title>{title}</AudioCard.Title>
-            <AudioCard.Body>
+    <ConditionalLink to={`chords/${audioAnalysis?._id}`} navigable={isAnalyzed === true}>
+      <AudioCard className={`results-item ${audioCardClassName}`}>
+        <AudioCard.Thumbnail>
+          <AudioCard.ThumbnailImg src={thumbnails[0].url} />
+        </AudioCard.Thumbnail>
+        <AudioCard.Content>
+          <AudioCard.Title>{title}</AudioCard.Title>
+          <AudioCard.Body>
 
-              {showDetailList && (
-                <AudioCard.DetailsList>
-                  <AudioCard.DetailsItem>{12} edits</AudioCard.DetailsItem>
-                  <AudioCard.DetailsItem>{12} views</AudioCard.DetailsItem>
-                  {audioAnalysis && <AudioCard.DetailsItem> {bpm} bpm</AudioCard.DetailsItem>}
-                </AudioCard.DetailsList>
-              )}
+            {showDetailList && (
+              <AudioCard.DetailsList>
+                <AudioCard.DetailsItem>{12} edits</AudioCard.DetailsItem>
+                <AudioCard.DetailsItem>{12} views</AudioCard.DetailsItem>
+                {audioAnalysis && <AudioCard.DetailsItem> {bpm} bpm</AudioCard.DetailsItem>}
+              </AudioCard.DetailsList>
+            )}
 
-              {showButton && (
-                <AudioCard.Button onClick={() => analyze({ youtubeId })}>
-                  {buttonContent}
-                </AudioCard.Button>
-              )}
+            {showButton && (
+              <AudioCard.Button onClick={() => analyze({ youtubeId })}>
+                {buttonContent}
+              </AudioCard.Button>
+            )}
+            {isSelectedResult
+              ? (
+                <>
+                  {jobIsError && 'An error happend, try again.'}
+                  {jobIsInQueue && 'waiting in queue'}
+                  {jobIsProcessing && 'processing'}
+                  {jobIsCompleted && 'redirecting'}
+                </>
+                )
+              : null}
 
-              {isSelectedResult && jobIsError && 'An error happend, try again.'}
-              {isSelectedResult && jobIsInQueue && 'waiting in queue'}
-              {isSelectedResult && jobIsProcessing && 'processing'}
-              {isSelectedResult && jobIsSuccess && 'redirecting'}
+            {showStatus && <AudioCard.Status isAnalyzed={isAnalyzed} />}
 
-              {showStatus && <AudioCard.Status isAnalyzed={isAnalyzed} />}
+          </AudioCard.Body>
+        </AudioCard.Content>
+      </AudioCard>
+    </ConditionalLink>
 
-            </AudioCard.Body>
-          </AudioCard.Content>
-        </AudioCard>
-      </a>
-    </Link>
   )
 }
 

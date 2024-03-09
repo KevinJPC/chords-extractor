@@ -1,5 +1,9 @@
+.results-item {
+  opacity: 1;
+  transition: opacity .3s ease-out;
+}
 
 
-.search-list-results__item--disable {
+.results-item--disabled {
   opacity: .5;
 }

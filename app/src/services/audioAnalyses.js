@@ -45,6 +45,12 @@ export const getYoutubeResultsWithAnalyzeStatus = async ({ q, continuation }) =>
   return { results: mappedResults, continuation: data.continuation }
 }
 
+const delay = async (time = 1000) => {
+  return new Promise(resolve => {
+    setTimeout(() => resolve(), time)
+  })
+}
+
 export const createAudioAnalysisJob = async ({ youtubeId }) => {
   const endpoint = new URL(`${API_URL}/audio-analyses/job`)
   const res = await fetch(endpoint, {
@@ -61,6 +67,7 @@ export const createAudioAnalysisJob = async ({ youtubeId }) => {
 }
 
 export const getAudioAnalysisJob = async ({ jobId }) => {
+  // await delay(1000)
   const endpoint = new URL(`${API_URL}/audio-analyses/job/${jobId}`)
   const res = await fetch(endpoint)
   const { data } = await res.json()

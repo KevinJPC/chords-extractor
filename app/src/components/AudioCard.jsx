@@ -1,9 +1,9 @@
 import './AudioCard.css'
 import { Children } from 'react'
 
-export const AudioCard = ({ children, ...props }) => {
+export const AudioCard = ({ children, className = '', ...props }) => {
   return (
-    <article className='audio-card' {...props}>
+    <article className={`audio-card ${className}`} {...props}>
       {children}
     </article>
   )

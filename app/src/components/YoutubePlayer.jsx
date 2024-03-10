@@ -7,7 +7,7 @@ import { useCallback, useEffect, useLayoutEffect } from 'react'
 export const YoutubePlayer = ({ youtubeId, hideVideo = false, onTimeUpdate, ...props }) => {
   //
 
-  useLayoutEffect(() => {
+  useEffect(() => {
     const player = new Plyr('#player', {
       controls: ['progress', 'play', 'play-large', 'volume', 'current-time'],
       invertTime: false,
@@ -34,6 +34,7 @@ export const YoutubePlayer = ({ youtubeId, hideVideo = false, onTimeUpdate, ...p
     player.on('timeupdate', timeUpdateListener)
     return () => {
       player.off('timeupdate', timeUpdateListener)
+      player.destroy()
     }
   }, [])
 
@@ -51,6 +52,8 @@ export const YoutubePlayer = ({ youtubeId, hideVideo = false, onTimeUpdate, ...p
   }, [hideVideo])
 
   return (
-    <div id='player' data-plyr-provider='youtube' data-plyr-embed-id={youtubeId} />
+    <div style={{ maxWidth: '750px', margin: '0 auto' }}>
+      <div id='player' data-plyr-provider='youtube' data-plyr-embed-id={youtubeId} />
+    </div>
   )
 }

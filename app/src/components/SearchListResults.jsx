@@ -11,6 +11,7 @@ import { ConditionalLink } from './ConditionalLink'
 import { AUDIO_ANALYSIS_STATUS } from '../../../constants/audioAnalisesStatus.js'
 import { queryClient } from '../config/queryClient.js'
 import { toast } from 'react-hot-toast'
+import { CustomContent } from './Toaster.jsx'
 
 const SearchListResultsContext = createContext()
 
@@ -34,12 +35,15 @@ export const SearchListResults = ({ children, ...props }) => {
   })
 
   useEffect(() => {
+    toast.error(<CustomContent>Ha ocurrido un error</CustomContent>, {
+      id: 'job',
+      duration: Infinity
+    })
+  }, [])
+
+  useEffect(() => {
     if (queryData?.status === 'error') {
-      toast.error((t) => (
-        <>
-          <div style={{ position: 'absolute', inset: '0', cursor: 'pointer' }} onClick={() => toast.dismiss(t.id)} />
-          <span>An error had happend while the song was being analyzed</span>
-        </>), {
+      toast.error(<CustomContent>Ha ocurrido un error</CustomContent>, {
         id: 'job',
         duration: Infinity
       })
@@ -82,20 +86,21 @@ export const SearchListResults = ({ children, ...props }) => {
 SearchListResults.Item = ({ youtubeId, thumbnails, title, duration, audioAnalysis, isAnalyzed }) => {
   const { selectedResultId, analyze, mutationIsPending, jobIsError, jobIsInQueue, jobIsProcessing, jobIsCompleted } = useContext(SearchListResultsContext)
 
-  const isSelectedResult = selectedResultId === youtubeId
+  const isSelectedResult = selectedResultId !== null && selectedResultId === youtubeId
 
   const showDetailList = isAnalyzed
   const showButton = !isAnalyzed && (!isSelectedResult || mutationIsPending || jobIsError)
   const buttonContent = isSelectedResult && mutationIsPending ? <Spinner size={14} /> : 'Analyze now'
   const showStatus = !isSelectedResult || mutationIsPending || jobIsError
-
-  const audioCardClassName = (selectedResultId !== null && !isSelectedResult && !jobIsError) ? 'results-item--disabled' : ''
+  const disableItem = selectedResultId !== null && !isSelectedResult && (!jobIsError || jobIsCompleted)
+  const isSelected = selectedResultId !== null && isSelectedResult && !jobIsError
+  const audioCardClassName = disableItem ? 'results-item--disabled' : ''
 
   const bpm = Math.round(audioAnalysis?.bpm)
 
   return (
-    <ConditionalLink to={`chords/${audioAnalysis?._id}`} navigable={isAnalyzed === true} disable={selectedResultId !== null && !isSelectedResult && !jobIsError}>
-      <AudioCard className={`results-item ${audioCardClassName}`} isDisabled={selectedResultId !== null && !isSelectedResult && !jobIsError} isSelected={selectedResultId !== null && isSelectedResult && !jobIsError}>
+    <ConditionalLink to={`chords/${audioAnalysis?._id}`} navigable={isAnalyzed === true} disable={disableItem}>
+      <AudioCard className={`results-item ${audioCardClassName}`} isDisabled={disableItem} isSelected={isSelected}>
         <AudioCard.Thumbnail>
           <AudioCard.ThumbnailImg src={thumbnails[0].url} />
         </AudioCard.Thumbnail>

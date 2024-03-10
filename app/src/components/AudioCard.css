@@ -7,8 +7,15 @@
   gap: 1rem;
 
   transition: background-color .3s ease, border .3s ease-out;
+}
 
-  cursor: pointer;
+.audio-card--disabled {
+  pointer-events: none;
+}
+
+.audio-card--selected {
+  background-color: var(--blue-100);
+  border: 1px solid var(--blue-200);
 }
 
 .audio-card:hover {

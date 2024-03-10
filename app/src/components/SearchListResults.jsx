@@ -10,6 +10,7 @@ import { useMutation, useQuery } from '@tanstack/react-query'
 import { ConditionalLink } from './ConditionalLink'
 import { AUDIO_ANALYSIS_STATUS } from '../../../constants/audioAnalisesStatus.js'
 import { queryClient } from '../config/queryClient.js'
+import { toast } from 'react-hot-toast'
 
 const SearchListResultsContext = createContext()
 
@@ -32,6 +33,19 @@ export const SearchListResults = ({ children, ...props }) => {
     refetchOnWindowFocus: false
   })
 
+  useEffect(() => {
+    if (queryData?.status === 'error') {
+      toast.error((t) => (
+        <>
+          <div style={{ position: 'absolute', inset: '0', cursor: 'pointer' }} onClick={() => toast.dismiss(t.id)} />
+          <span>An error had happend while the song was being analyzed</span>
+        </>), {
+        id: 'job',
+        duration: Infinity
+      })
+    }
+  }, [queryData])
+
   const { jobResult, jobIsError, jobIsInQueue, jobIsProcessing, jobIsCompleted } = useMemo(() => {
     const job = mutationData !== undefined || queryData !== undefined ? { ...mutationData, ...queryData } : undefined
     const jobIsError = mutationError !== null || queryError !== null || job?.status === 'error'
@@ -52,9 +66,10 @@ export const SearchListResults = ({ children, ...props }) => {
 
   const analyze = ({ youtubeId }) => {
     if (selectedResultId && !jobIsError) return
-    queryClient.resetQueries({ queryKey: 'job', exact: true })
+    queryClient.resetQueries({ queryKey: 'job', exact: true }) // reset job query data
     setSelectedResultId(youtubeId)
     runAudioAnalysisJobMutation({ youtubeId })
+    toast.dismiss('job')
   }
 
   return (
@@ -79,8 +94,8 @@ SearchListResults.Item = ({ youtubeId, thumbnails, title, duration, audioAnalysi
   const bpm = Math.round(audioAnalysis?.bpm)
 
   return (
-    <ConditionalLink to={`chords/${audioAnalysis?._id}`} navigable={isAnalyzed === true}>
-      <AudioCard className={`results-item ${audioCardClassName}`}>
+    <ConditionalLink to={`chords/${audioAnalysis?._id}`} navigable={isAnalyzed === true} disable={selectedResultId !== null && !isSelectedResult && !jobIsError}>
+      <AudioCard className={`results-item ${audioCardClassName}`} isDisabled={selectedResultId !== null && !isSelectedResult && !jobIsError} isSelected={selectedResultId !== null && isSelectedResult && !jobIsError}>
         <AudioCard.Thumbnail>
           <AudioCard.ThumbnailImg src={thumbnails[0].url} />
         </AudioCard.Thumbnail>
@@ -104,7 +119,6 @@ SearchListResults.Item = ({ youtubeId, thumbnails, title, duration, audioAnalysi
             {isSelectedResult
               ? (
                 <>
-                  {jobIsError && 'An error happend, try again.'}
                   {jobIsInQueue && 'waiting in queue'}
                   {jobIsProcessing && 'processing'}
                   {jobIsCompleted && 'redirecting'}

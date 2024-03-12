@@ -1,9 +1,9 @@
 import { Link } from 'wouter'
 
-export const ConditionalLink = ({ children, navigable = false, disable = false, ...props }) => {
+export const ConditionalLink = ({ children, isNavigable = false, ...props }) => {
   return (
     <>
-      {(navigable && !disable)
+      {(isNavigable)
         ? (
           <Link {...props}>
             <a>

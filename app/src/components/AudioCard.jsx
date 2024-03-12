@@ -1,7 +1,7 @@
 import './AudioCard.css'
 import { Children } from 'react'
 
-export const AudioCard = ({ children, className = '', isDisabled, isSelected = false, ...props }) => {
+export const AudioCard = ({ children, className = '', isDisabled = false, isSelected = false, ...props }) => {
   return (
     <article
       className={`audio-card ${isSelected ? 'audio-card--selected' : ''} ${isDisabled ? 'audio-card--disabled' : ''} ${className}`} {...props}

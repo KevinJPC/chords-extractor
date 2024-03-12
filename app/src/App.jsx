@@ -7,8 +7,8 @@ import { Toaster } from './components/Toaster.jsx'
 const App = () => {
   return (
     <>
+      <Toaster />
       <QueryClientProvider client={queryClient}>
-        <Toaster />
         <Header />
         <Router />
       </QueryClientProvider>

@@ -33,7 +33,6 @@ export const YoutubePlayer = ({ youtubeId, hideVideo = false, onTimeUpdate, ...p
 
     player.on('timeupdate', timeUpdateListener)
     return () => {
-      player.off('timeupdate', timeUpdateListener)
       player.destroy()
     }
   }, [])

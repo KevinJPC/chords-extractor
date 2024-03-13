@@ -109,30 +109,6 @@ export const SearchListResults = ({ children, ...props }) => {
   )
 }
 
-const FakeProgressBar = ({ hasFinished = false }) => {
-  const [fakeProgress, setFakeProgress] = useState(0)
-  const value = hasFinished ? 100 : fakeProgress
-
-  useEffect(() => {
-    const stepValueRandom = Math.floor(Math.random() * 10) + 1
-
-    if (hasFinished) return
-    const timeoutId = setTimeout(function increaseProgress () {
-      const currentProgress = fakeProgress
-      if (currentProgress >= 90) return
-      setFakeProgress(currentProgress + stepValueRandom)
-    }, 2000)
-    return () => clearTimeout(timeoutId)
-  }, [fakeProgress])
-
-  return (
-    <div>
-      <label htmlFor='progress'>Progress {value}%</label>
-      <progress id='progress' className='progress' max={100} value={value} />
-    </div>
-  )
-}
-
 SearchListResults.Item = ({ youtubeId, thumbnails, title, duration, audioAnalysis, isAnalyzed }) => {
   const { selectedResultId, analyze, isPending, jobIsError, jobIsInQueue, jobIsProcessing, jobIsCompleted, error } = useContext(SearchListResultsContext)
 
@@ -168,15 +144,13 @@ SearchListResults.Item = ({ youtubeId, thumbnails, title, duration, audioAnalysi
                 {buttonContent}
               </AudioCard.Button>
             )}
-            {isSelectedResult
-              ? (
-                <>
-                  {jobIsInQueue && 'waiting in queue'}
-                  {(jobIsProcessing || jobIsCompleted) && <FakeProgressBar hasFinished={jobIsCompleted} />}
-                  {/* {jobIsCompleted && 'redirecting'} */}
-                </>
-                )
-              : null}
+
+            {(isSelectedResult && !isPending && !(jobIsError || error)) &&
+              <AudioCard.JobStatus
+                jobIsCompleted={jobIsCompleted}
+                jobIsProcessing={jobIsProcessing}
+                jobIsQueue={jobIsInQueue}
+              />}
 
             {showStatus && <AudioCard.Status isAnalyzed={isAnalyzed} />}
 

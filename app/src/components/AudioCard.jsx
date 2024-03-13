@@ -1,5 +1,6 @@
 import './AudioCard.css'
 import { Children } from 'react'
+import { FakeProgressBar } from './FakeProgressBar'
 
 export const AudioCard = ({ children, className = '', isDisabled = false, isSelected = false, ...props }) => {
   return (
@@ -85,6 +86,18 @@ AudioCard.Button = ({ children, ...props }) => {
     </button>
   )
 }
+
+AudioCard.JobStatus = ({ jobIsProcessing, jobIsCompleted, jobIsQueue }) => {
+  const jobStatusText = jobIsCompleted ? 'Redirecting' : jobIsProcessing ? 'Processing' : 'Waiting in queue'
+
+  return (
+    <div className='audio-card__job-status'>
+      {(jobIsProcessing || jobIsCompleted) && <FakeProgressBar hasFinished={jobIsCompleted} />}
+      <div className='audio-card__job-status-text'>{jobStatusText}</div>
+    </div>
+  )
+}
+
 //
 
 // import { chordParserFactory, chordRendererFactory } from 'chord-symbol/lib/chord-symbol.js'

@@ -115,6 +115,7 @@ SearchListResults.Item = ({ youtubeId, thumbnails, title, duration, audioAnalysi
   const isSelectedResult = selectedResultId !== null && selectedResultId === youtubeId
   const showDetailList = isAnalyzed
   const showButton = !isAnalyzed && (!isSelectedResult || isPending || (jobIsError || error))
+  const showJobStatus = isSelectedResult && !isPending && !(jobIsError || error)
   const buttonContent = isSelectedResult && isPending ? <Spinner size={14} /> : 'Analyze now'
   const showStatus = !isSelectedResult || isPending || (jobIsError || error)
   const disableItem = selectedResultId !== null && !isSelectedResult && (!(jobIsError || error) || jobIsCompleted)
@@ -145,11 +146,11 @@ SearchListResults.Item = ({ youtubeId, thumbnails, title, duration, audioAnalysi
               </AudioCard.Button>
             )}
 
-            {(isSelectedResult && !isPending && !(jobIsError || error)) &&
+            {showJobStatus &&
               <AudioCard.JobStatus
                 jobIsCompleted={jobIsCompleted}
                 jobIsProcessing={jobIsProcessing}
-                jobIsQueue={jobIsInQueue}
+                jobIsInQueue={jobIsInQueue}
               />}
 
             {showStatus && <AudioCard.Status isAnalyzed={isAnalyzed} />}

@@ -87,13 +87,19 @@ AudioCard.Button = ({ children, ...props }) => {
   )
 }
 
-AudioCard.JobStatus = ({ jobIsProcessing, jobIsCompleted, jobIsQueue }) => {
-  const jobStatusText = jobIsCompleted ? 'Redirecting' : jobIsProcessing ? 'Processing' : 'Waiting in queue'
+AudioCard.JobStatus = ({ jobIsProcessing, jobIsCompleted, jobIsInQueue }) => {
+  const jobStatusText = (() => {
+    if (jobIsCompleted) return 'Redirecting'
+    if (jobIsProcessing) return 'Processing'
+    if (jobIsInQueue) return 'Waiting in queue'
+  })()
+
+  const showProgressBar = !jobIsInQueue
 
   return (
     <div className='audio-card__job-status'>
-      {(jobIsProcessing || jobIsCompleted) && <FakeProgressBar hasFinished={jobIsCompleted} />}
-      <div className='audio-card__job-status-text'>{jobStatusText}</div>
+      {showProgressBar && <FakeProgressBar hasFinished={jobIsCompleted} />}
+      <span className='audio-card__job-status-text'>{jobStatusText}</span>
     </div>
   )
 }

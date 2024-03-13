@@ -5,17 +5,17 @@ export const FakeProgressBar = ({ hasFinished = false }) => {
   const [fakeProgress, setFakeProgress] = useState(0)
 
   useEffect(() => {
-    const stepValueRandom = Math.floor(Math.random() * 10) + 1
-
     if (fakeProgress !== 100 && hasFinished) return setFakeProgress(100)
 
+    const currentProgress = fakeProgress
+    if (currentProgress >= 90) return
+
     const timeoutId = setTimeout(function increaseProgress () {
-      const currentProgress = fakeProgress
-      if (currentProgress >= 90) return
+      const stepValueRandom = Math.floor(Math.random() * 10) + 1
       setFakeProgress(currentProgress + stepValueRandom)
     }, 2000)
     return () => clearTimeout(timeoutId)
-  }, [fakeProgress])
+  }, [fakeProgress, hasFinished])
 
   return (
 

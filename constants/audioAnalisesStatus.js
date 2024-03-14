@@ -1,6 +1,6 @@
 export const AUDIO_ANALYSIS_STATUS = {
   waiting: 'waiting',
-  error: 'error',
+  failed: 'failed',
   completed: 'completed',
   processing: 'processing'
 }

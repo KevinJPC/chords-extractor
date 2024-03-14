@@ -54,7 +54,7 @@ export const findJob = async ({ id }) => {
 
 export const getJobStatus = ({ job }) => {
   console.log('failedReason', job.failedReason)
-  if (job.failedReason !== undefined) return AUDIO_ANALYSIS_STATUS.error
+  if (job.failedReason !== undefined) return AUDIO_ANALYSIS_STATUS.failed
   if (job.returnvalue !== null) return AUDIO_ANALYSIS_STATUS.completed
   if (job.progress?.started === true) return AUDIO_ANALYSIS_STATUS.processing
   return AUDIO_ANALYSIS_STATUS.waiting

@@ -23,14 +23,14 @@ export const useCreateAudioAnalysisJobPolling = () => {
     // refetchOnMount: false
   })
 
-  const { jobResult, jobIsError, jobIsInQueue, jobIsProcessing, jobIsCompleted, error } = useMemo(() => {
+  const { jobResult, jobIsFailed, jobIsInQueue, jobIsProcessing, jobIsCompleted, error } = useMemo(() => {
     const job = mutationData !== undefined || queryData !== undefined ? { ...mutationData, ...queryData } : undefined
-    const jobIsError = job?.status === 'error'
+    const jobIsFailed = job?.status === AUDIO_ANALYSIS_STATUS.failed
     const jobIsInQueue = job?.status === AUDIO_ANALYSIS_STATUS.waiting
     const jobIsProcessing = job?.status === AUDIO_ANALYSIS_STATUS.processing
     const jobIsCompleted = job?.status === AUDIO_ANALYSIS_STATUS.completed
     const error = mutationError !== null || queryError !== null ? { ...mutationError, ...queryError } : null
-    return { jobResult: job?.result, jobIsError, jobIsInQueue, jobIsProcessing, jobIsCompleted, error }
+    return { jobResult: job?.result, jobIsFailed, jobIsInQueue, jobIsProcessing, jobIsCompleted, error }
   }, [mutationData, queryData, mutationError, queryError])
 
   const runAudioAnalysisJobMutation = ({ youtubeId }) => {
@@ -38,5 +38,5 @@ export const useCreateAudioAnalysisJobPolling = () => {
     mutate({ youtubeId })
   }
 
-  return { jobResult, jobIsError, jobIsInQueue, jobIsCompleted, jobIsProcessing, error, createJob: runAudioAnalysisJobMutation, isPending: mutationIsPending }
+  return { jobResult, jobIsFailed, jobIsInQueue, jobIsCompleted, jobIsProcessing, error, createJob: runAudioAnalysisJobMutation, isPending: mutationIsPending }
 }

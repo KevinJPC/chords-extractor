@@ -1,4 +1,4 @@
-import { AUDIO_ANALYSIS_STATUS } from '../../../constants/audioAnalisesStatus.js'
+import { AUDIO_ANALYSIS_STATUS } from '../../../constants/audioAnalysisStatus.js'
 import { YOUTUBE_VIDEO_NOT_FOUND } from '../constants/errorCodes.js'
 import { NOT_FOUND } from '../constants/httpCodes.js'
 import AudioAnalysis from '../models/AudioAnalysis.js'

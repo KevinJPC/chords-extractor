@@ -2,7 +2,7 @@ import { Queue, QueueEvents, Worker } from 'bullmq'
 import redisConfig from '../config/redis.js'
 import Redis from 'ioredis'
 import { analyzeAudioProcessor } from '../processors/analyzeAudioProcessor.js'
-import { AUDIO_ANALYSIS_STATUS } from '../../../constants/audioAnalisesStatus.js'
+import { AUDIO_ANALYSIS_STATUS } from '../../../constants/audioAnalysisStatus.js'
 
 const redisClient = new Redis({
   ...redisConfig,

@@ -1,6 +1,6 @@
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { createAudioAnalysisJob, getAudioAnalysisJob } from '../services/audioAnalyses.js'
-import { AUDIO_ANALYSIS_STATUS } from '../../../constants/audioAnalysesStatus.js'
+import { AUDIO_ANALYSIS_STATUS } from '../../../constants/audioAnalysisStatus.js'
 import { useMemo } from 'react'
 import { queryClient } from '../config/queryClient.js'
 

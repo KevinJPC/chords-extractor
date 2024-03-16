@@ -24,11 +24,11 @@ export const Toaster = ({ children }) => (
   />
 )
 
-export const CustomContent = ({ children }, t) => {
+export const customContent = (t, message) => {
   return (
     <>
       <div style={{ position: 'absolute', inset: '0', cursor: 'pointer' }} onClick={() => toast.dismiss(t.id)} />
-      <span>{children}</span>
+      <span>{message}</span>
     </>
   )
 }

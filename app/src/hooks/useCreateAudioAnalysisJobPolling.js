@@ -38,5 +38,5 @@ export const useCreateAudioAnalysisJobPolling = () => {
     mutate({ youtubeId })
   }
 
-  return { jobResult, jobIsFailed, jobIsInQueue, jobIsCompleted, jobIsProcessing, error, createJob: runAudioAnalysisJobMutation, isPending: mutationIsPending }
+  return { jobResult, jobIsFailed, jobIsInQueue, jobIsCompleted, jobIsProcessing, error, createJob: runAudioAnalysisJobMutation, jobCreationIsPending: mutationIsPending }
 }

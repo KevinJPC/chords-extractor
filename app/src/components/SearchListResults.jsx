@@ -3,7 +3,6 @@ import { AudioCard } from './AudioCard'
 import 'react-loading-skeleton/dist/skeleton.css'
 import { Spinner } from './Spinner'
 import { useAnalyzeResults } from '../hooks/useAnalyzeResults'
-import './SearchListResults.css'
 
 const SearchListResultsContext = createContext({
   selectedResultId: null

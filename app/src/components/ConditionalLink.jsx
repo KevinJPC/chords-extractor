@@ -1,12 +1,12 @@
 import { Link } from 'wouter'
 
-export const ConditionalLink = ({ children, isNavigable = false, ...props }) => {
+export const ConditionalLink = ({ children, isNavigable = false, className = '', to = '#' }) => {
   return (
     <>
       {(isNavigable)
         ? (
-          <Link {...props}>
-            <a>
+          <Link to={to}>
+            <a className={className}>
               {children}
             </a>
           </Link>

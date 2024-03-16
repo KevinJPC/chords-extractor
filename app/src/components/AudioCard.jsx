@@ -1,13 +1,19 @@
 import './AudioCard.css'
 import { Children } from 'react'
 import { FakeProgressBar } from './FakeProgressBar'
+import { ConditionalLink } from './ConditionalLink'
 
-export const AudioCard = ({ children, className = '', isDisabled = false, isSelected = false, ...props }) => {
+export const AudioCard = ({ children, isDisabled = false, isSelected = false, isNavigable = false, to, ...props }) => {
   return (
     <article
-      className={`audio-card ${isSelected ? 'audio-card--selected' : ''} ${isDisabled ? 'audio-card--disabled' : ''} ${className}`} {...props}
+      className={`audio-card ${isDisabled ? 'audio-card--disabled' : ''} ${isSelected ? 'audio-card--selected' : ''}`}
+      {...props}
     >
-      {children}
+      <ConditionalLink isNavigable={isNavigable} to={to}>
+        <div className='audio-card__container'>
+          {children}
+        </div>
+      </ConditionalLink>
     </article>
   )
 }
@@ -20,7 +26,7 @@ AudioCard.Thumbnail = ({ children, ...props }) => {
   )
 }
 
-AudioCard.ThumbnailImg = ({ src, props }) => {
+AudioCard.ThumbnailImg = ({ src, ...props }) => {
   return (
     <img src={src} className='audio-card__img' />
   )
@@ -36,7 +42,9 @@ AudioCard.Content = ({ children, ...props }) => {
 
 AudioCard.Title = ({ children, ...props }) => {
   return (
-    <h1 className='audio-card__title'>{children}</h1>
+    <h1 className='audio-card__title'>
+      {children}
+    </h1>
   )
 }
 
@@ -70,11 +78,13 @@ AudioCard.DetailsItem = ({ children }) => {
 }
 
 AudioCard.Status = ({ isAnalyzed, ...props }) => {
-  const statusText = isAnalyzed ? 'analyzed' : 'not analyzed'
+  const statusText = isAnalyzed ? 'Analyzed' : 'Not analyzed'
   const statusClass = isAnalyzed ? 'audio-card__status--analyzed' : 'audio-card__status--not-analyzed'
   return (
     <footer className={`audio-card__status ${statusClass}`} {...props}>
-      {statusText}
+      <span>
+        {statusText}
+      </span>
     </footer>
   )
 }
@@ -87,39 +97,19 @@ AudioCard.Button = ({ children, ...props }) => {
   )
 }
 
-AudioCard.JobStatus = ({ jobIsProcessing, jobIsCompleted, jobIsInQueue }) => {
+AudioCard.JobStatus = ({ isProcessing, isCompleted, isInQueue }) => {
   const jobStatusText = (() => {
-    if (jobIsCompleted) return 'Redirecting'
-    if (jobIsProcessing) return 'Processing'
-    if (jobIsInQueue) return 'Waiting in queue'
+    if (isCompleted) return 'Redirecting'
+    if (isProcessing) return 'Processing'
+    if (isInQueue) return 'Waiting in queue'
   })()
 
-  const showProgressBar = !jobIsInQueue
+  const showProgressBar = isProcessing || isCompleted
 
   return (
     <div className='audio-card__job-status'>
-      {showProgressBar && <FakeProgressBar hasFinished={jobIsCompleted} />}
+      {showProgressBar && <FakeProgressBar hasFinished={isCompleted} />}
       <span className='audio-card__job-status-text'>{jobStatusText}</span>
     </div>
   )
 }
-
-//
-
-// import { chordParserFactory, chordRendererFactory } from 'chord-symbol/lib/chord-symbol.js'
-// const CHORDS_PARSER_OPTIONS = {
-//   useShortNamings: true,
-//   simplify: 'none', // none | max | core,
-//   transposeValue: 0,
-//   accidental: 'origianal', // original | flat | sharp
-//   notationSystem: 'english'
-// }
-
-// const parseChord = useMemo(() => chordParserFactory(), [])
-// const renderChord = useMemo(() => chordRendererFactory(CHORDS_PARSER_OPTIONS), [])
-
-// console.log(chordsPerBeats)
-// const chordsSymbol = chordsPerBeats?.map((chord) => {
-//   const chordsParsed = parseChord(chord)
-//   return renderChord(chordsParsed)
-// })
